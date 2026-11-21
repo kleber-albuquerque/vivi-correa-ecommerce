@@ -6,25 +6,24 @@ const path = raw.startsWith(base) ? '/' + raw.slice(base.length) : raw;
 const current = path.replace(/\/+$/, '') || '/';
 const on = (k) => (k === '/' ? current === '/' : current === k || current.startsWith(k + '/'));
 const links = [
-  { href: base,                 label: 'Início',     key: '/' },
-  { href: `${base}aneis`,       label: 'Anéis',      key: '/aneis' },
-  { href: `${base}brincos`,     label: 'Brincos',    key: '/brincos' },
-  { href: `${base}colares`,     label: 'Colares',    key: '/colares' },
-  { href: `${base}colecoes`,    label: 'Coleções',   key: '/colecoes' },
-  { href: `${base}quem-somos`,  label: 'Quem Somos', key: '/quem-somos' },
-  { href: `${base}ajuda`,       label: 'Ajuda',      key: '/ajuda' },
+  { href: base,                label: 'Início',     key: '/' },
+  { href: `${base}aneis`,      label: 'Anéis',      key: '/aneis' },
+  { href: `${base}brincos`,    label: 'Brincos',    key: '/brincos' },
+  { href: `${base}colares`,    label: 'Colares',    key: '/colares' },
+  { href: `${base}colecoes`,   label: 'Coleções',   key: '/colecoes' },
+  { href: `${base}quem-somos`, label: 'Quem Somos', key: '/quem-somos' },
+  { href: `${base}ajuda`,      label: 'Ajuda',      key: '/ajuda' },
 ];
 ---
-<header class="vc-hdr bg-white border-b border-line sticky top-0 z-50">
-  <div class="vc-hdr-in container mx-auto px-4 md:px-6">
-
-    <button type="button" id="vc-burger" class="vc-burger md:hidden" aria-label="Abrir menu" aria-expanded="false">
+<header class="vc-hdr">
+  <div class="vc-hdr-in container mx-auto">
+    <button type="button" id="vc-burger" class="vc-burger" aria-label="Abrir menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
 
-    <div class="vc-logo text-center">
+    <div class="vc-logo">
       <a href={base} aria-label="Vivi Corrêa — início">
-        <img src={`${base}logo.png`} alt="Vivi Correa Joias" class="vc-logo-img mx-auto" />
+        <img src={`${base}logo.png`} alt="Vivi Correa Joias" class="vc-logo-img" />
       </a>
     </div>
 
@@ -34,20 +33,18 @@ const links = [
       </a>
       <a href={`${base}carrinho`} class="vc-icone vc-rel" aria-label="Sacola">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-        <span id="contador-carrinho" class="vc-badge hidden">0</span>
+        <span id="contador-carrinho" class="vc-badge">0</span>
       </a>
     </div>
 
-    <nav class="vc-nav-desktop hidden md:flex">
-      {links.map(l => (
-        <a href={l.href} class={`vc-link ${on(l.key) ? 'vc-on' : ''}`}>{l.label}</a>
-      ))}
+    <nav class="vc-nav-desktop" aria-label="Navegação principal">
+      {links.map(l => <a href={l.href} class={`vc-link ${on(l.key) ? 'vc-on' : ''}`}>{l.label}</a>)}
     </nav>
   </div>
 </header>
 
-<div id="vc-scrim" class="vc-scrim md:hidden" hidden></div>
-<aside id="vc-drawer" class="vc-drawer md:hidden" aria-hidden="true">
+<div id="vc-scrim" class="vc-scrim" hidden></div>
+<aside id="vc-drawer" class="vc-drawer" aria-hidden="true" aria-label="Menu">
   <div class="vc-drawer-top">
     <img src={`${base}logo.png`} alt="Vivi Corrêa" class="vc-drawer-logo" />
     <button type="button" id="vc-close" class="vc-close" aria-label="Fechar menu">×</button>
@@ -66,7 +63,7 @@ const links = [
   </div>
 </aside>
 
-<nav class="mobile-bottom-nav vc-bottom md:hidden" aria-label="Navegação rápida">
+<nav class="mobile-bottom-nav vc-bottom" aria-label="Navegação rápida">
   <a href={base} class={`vc-tab ${on('/') ? 'vc-on' : ''}`}>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
     <span>Início</span>
@@ -82,23 +79,26 @@ const links = [
   <a href={`${base}carrinho`} class={`vc-tab ${on('/carrinho') ? 'vc-on' : ''}`}>
     <span class="vc-rel">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-      <span id="contador-carrinho-mobile" class="vc-badge vc-badge-sm hidden">0</span>
+      <span id="contador-carrinho-mobile" class="vc-badge vc-badge-sm">0</span>
     </span>
     <span>Sacola</span>
   </a>
 </nav>
 
 <style is:global>
-  .vc-hdr{border-color:#e7dfd1;background:#fff}
-  .vc-hdr-in{position:relative;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;padding-top:10px;padding-bottom:10px}
-  .vc-logo{grid-column:2}
-  .vc-logo-img{height:44px;width:auto;display:block}
+  .vc-hdr{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #e7dfd1}
+  .vc-hdr-in{position:relative;display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:8px;padding:10px 16px}
+  .vc-logo{grid-column:2;text-align:center;min-width:0}
+  .vc-logo-img{height:42px;width:auto;max-width:100%;display:block;margin:0 auto}
   .vc-acoes{grid-column:3;display:flex;align-items:center;justify-content:flex-end;gap:14px}
   .vc-icone{color:#3f372d;display:inline-flex;transition:color .25s}
   .vc-icone:hover{color:#8B7355}
   .vc-icone svg{width:23px;height:23px;display:block}
   .vc-rel{position:relative;display:inline-flex}
-  .vc-badge{position:absolute;top:-7px;right:-8px;min-width:17px;height:17px;padding:0 4px;border-radius:99px;background:linear-gradient(135deg,#6f5940,#8B7355 60%,#c9b189);color:#fff;font-size:9.5px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(139,115,85,.45)}
+  .vc-badge{display:none;position:absolute;top:-7px;right:-8px;min-width:17px;height:17px;padding:0 4px;border-radius:99px;
+    background:linear-gradient(135deg,#6f5940,#8B7355 60%,#c9b189);color:#fff;font-size:9.5px;font-weight:700;
+    align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(139,115,85,.45)}
+  .vc-badge.on{display:flex}
   .vc-badge-sm{top:-6px;right:-7px;min-width:15px;height:15px;font-size:8.5px}
   .vc-burger{grid-column:1;width:40px;height:40px;display:flex;flex-direction:column;justify-content:center;gap:5px;background:none;border:none;padding:0 8px;cursor:pointer}
   .vc-burger span{display:block;height:1.6px;background:#3f372d;border-radius:2px;transition:transform .3s,opacity .25s,width .3s}
@@ -108,24 +108,18 @@ const links = [
   .vc-burger[aria-expanded="true"] span:nth-child(1){transform:translateY(6.6px) rotate(45deg)}
   .vc-burger[aria-expanded="true"] span:nth-child(2){opacity:0}
   .vc-burger[aria-expanded="true"] span:nth-child(3){width:22px;transform:translateY(-6.6px) rotate(-45deg)}
-  .vc-nav-desktop{grid-column:1 / -1;justify-content:center;flex-wrap:wrap;gap:30px;margin-top:14px;padding-bottom:4px;font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+  .vc-nav-desktop{display:none;grid-column:1 / -1;justify-content:center;flex-wrap:wrap;gap:30px;margin-top:14px;padding-bottom:4px;
+    font-size:12px;letter-spacing:.16em;text-transform:uppercase}
   .vc-link{color:#8a7f70;text-decoration:none;position:relative;padding-bottom:3px;transition:color .25s}
   .vc-link::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1.5px;background:linear-gradient(90deg,#8B7355,#c9b189);transform:scaleX(0);transform-origin:left;transition:transform .3s}
   .vc-link:hover{color:#8B7355}
   .vc-link:hover::after,.vc-link.vc-on::after{transform:scaleX(1)}
   .vc-link.vc-on{color:#8B7355;font-weight:600}
-  @media(min-width:768px){
-    .vc-hdr-in{grid-template-columns:1fr;padding-top:22px;padding-bottom:14px}
-    .vc-logo{grid-column:1}
-    .vc-logo-img{height:76px}
-    .vc-acoes{position:absolute;right:24px;top:26px;grid-column:auto}
-    .vc-icone svg{width:25px;height:25px}
-    .vc-nav-desktop{grid-column:1}
-  }
   .vc-scrim{position:fixed;inset:0;z-index:60;background:rgba(36,29,22,.5);backdrop-filter:blur(2px);opacity:0;transition:opacity .3s}
+  .vc-scrim[hidden]{display:none}
   .vc-scrim.on{opacity:1}
   .vc-drawer{position:fixed;top:0;left:0;bottom:0;z-index:61;width:min(84vw,320px);background:#faf9f7;display:flex;flex-direction:column;
-    transform:translateX(-102%);transition:transform .38s cubic-bezier(.22,1,.36,1);box-shadow:14px 0 44px rgba(36,29,22,.22);visibility:hidden}
+    transform:translateX(-102%);visibility:hidden;transition:transform .38s cubic-bezier(.22,1,.36,1),visibility .38s;box-shadow:14px 0 44px rgba(36,29,22,.22)}
   .vc-drawer.on{transform:none;visibility:visible}
   .vc-drawer-top{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 14px;border-bottom:1px solid #e7dfd1;background:#fff}
   .vc-drawer-logo{height:38px;width:auto}
@@ -135,6 +129,7 @@ const links = [
   .vc-drawer-nav::-webkit-scrollbar{width:8px}
   .vc-drawer-nav::-webkit-scrollbar-track{background:#f4f0e8}
   .vc-drawer-nav::-webkit-scrollbar-thumb{background:#c9b189;border-radius:99px;border:2px solid #f4f0e8}
+  .vc-drawer-nav::-webkit-scrollbar-thumb:hover{background:#8B7355}
   .vc-drawer-link{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 18px;text-decoration:none;color:#3f372d;
     font-size:13px;letter-spacing:.13em;text-transform:uppercase;border-bottom:1px solid #f1ece2;transition:background .25s,color .25s,padding-left .25s}
   .vc-drawer-link svg{width:15px;height:15px;color:#c9b189;flex-shrink:0}
@@ -145,13 +140,22 @@ const links = [
   .vc-drawer-sub{margin:2px 0 0;font-size:11px;color:#9a8d7a;letter-spacing:.06em}
   .vc-bottom{position:fixed;left:0;right:0;bottom:0;z-index:50;display:grid;grid-template-columns:repeat(4,1fr);
     background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid #e7dfd1;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 20px rgba(36,29,22,.07)}
-  .vc-tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 8px;text-decoration:none;color:#9a8d7a;transition:color .25s}
+  .vc-tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 8px;text-decoration:none;color:#9a8d7a;transition:color .25s,transform .15s}
   .vc-tab svg{width:21px;height:21px;display:block}
   .vc-tab span:last-child{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:500}
   .vc-tab.vc-on{color:#8B7355}
   .vc-tab.vc-on svg{stroke-width:1.9}
   .vc-tab:active{transform:scale(.94)}
-  @media(min-width:768px){.vc-bottom,.vc-drawer,.vc-scrim{display:none!important}}
+  @media (min-width: 900px) {
+    .vc-hdr-in{grid-template-columns:minmax(0,1fr);padding:22px 24px 14px}
+    .vc-logo{grid-column:1}
+    .vc-logo-img{height:76px}
+    .vc-acoes{position:absolute;right:24px;top:26px;grid-column:auto}
+    .vc-icone svg{width:25px;height:25px}
+    .vc-burger{display:none}
+    .vc-nav-desktop{display:flex;grid-column:1}
+    .vc-bottom,.vc-drawer,.vc-scrim{display:none}
+  }
 </style>
 
 <script>
@@ -168,7 +172,7 @@ const links = [
     const t = Array.isArray(c) ? c.reduce((a,i)=>a + (parseInt(i.quantidade)||0), 0) : 0;
     ['contador-carrinho','contador-carrinho-mobile'].forEach(id => {
       const el = document.getElementById(id);
-      if (el){ el.textContent = String(t); el.classList.toggle('hidden', t === 0); }
+      if (el){ el.textContent = String(t); el.classList.toggle('on', t > 0); }
     });
   }
   function vcDrawer(abrir){
@@ -176,33 +180,37 @@ const links = [
     const s = document.getElementById('vc-scrim');
     const b = document.getElementById('vc-burger');
     if (!d || !s || !b) return;
+    if (abrir && getComputedStyle(b).display === 'none') return;
     b.setAttribute('aria-expanded', String(abrir));
     d.setAttribute('aria-hidden', String(!abrir));
     d.classList.toggle('on', abrir);
     if (abrir){ s.hidden = false; requestAnimationFrame(()=>s.classList.add('on')); document.body.style.overflow = 'hidden'; }
-    else { s.classList.remove('on'); document.body.style.overflow = ''; setTimeout(()=>{ s.hidden = true; }, 300); }
+    else { s.classList.remove('on'); document.body.style.overflow = ''; setTimeout(()=>{ s.hidden = true; }, 320); }
   }
   function vcInit(){
     vcMedir(); vcContador();
     const b = document.getElementById('vc-burger');
     const c = document.getElementById('vc-close');
     const s = document.getElementById('vc-scrim');
-    if (b) b.addEventListener('click', () => vcDrawer(b.getAttribute('aria-expanded') !== 'true'));
-    if (c) c.addEventListener('click', () => vcDrawer(false));
-    if (s) s.addEventListener('click', () => vcDrawer(false));
-    document.querySelectorAll('.vc-drawer-link').forEach(a => a.addEventListener('click', () => vcDrawer(false)));
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') vcDrawer(false); });
-    if (window.ResizeObserver){
-      const ro = new ResizeObserver(vcMedir);
-      const h = document.querySelector('.vc-hdr'); const n = document.querySelector('.vc-bottom');
-      if (h) ro.observe(h); if (n) ro.observe(n);
+    if (b && !b.dataset.bound){ b.dataset.bound = '1'; b.addEventListener('click', () => vcDrawer(b.getAttribute('aria-expanded') !== 'true')); }
+    if (c && !c.dataset.bound){ c.dataset.bound = '1'; c.addEventListener('click', () => vcDrawer(false)); }
+    if (s && !s.dataset.bound){ s.dataset.bound = '1'; s.addEventListener('click', () => vcDrawer(false)); }
+    document.querySelectorAll('.vc-drawer-link').forEach(a => { if (!a.dataset.bound){ a.dataset.bound='1'; a.addEventListener('click', () => vcDrawer(false)); } });
+    if (!document.body.dataset.vcKey){
+      document.body.dataset.vcKey = '1';
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') vcDrawer(false); });
+      window.addEventListener('resize', () => { vcMedir(); if (window.innerWidth >= 900) vcDrawer(false); });
+      window.addEventListener('orientationchange', () => setTimeout(vcMedir, 260));
+      window.addEventListener('load', vcMedir);
+      window.addEventListener('carrinho-atualizado', vcContador);
+      if (window.ResizeObserver){
+        const ro = new ResizeObserver(vcMedir);
+        const h = document.querySelector('.vc-hdr'); const n = document.querySelector('.vc-bottom');
+        if (h) ro.observe(h); if (n) ro.observe(n);
+      }
     }
   }
   vcInit();
   document.addEventListener('DOMContentLoaded', vcInit);
-  window.addEventListener('load', vcMedir);
-  window.addEventListener('resize', vcMedir);
-  window.addEventListener('orientationchange', () => setTimeout(vcMedir, 260));
-  window.addEventListener('carrinho-atualizado', vcContador);
   document.addEventListener('astro:page-load', vcInit);
 </script>
