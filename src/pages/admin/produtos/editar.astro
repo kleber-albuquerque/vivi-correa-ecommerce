@@ -15,6 +15,113 @@ import 'quill/dist/quill.snow.css';
         .bg-brand { background-color: #8B7355; }
         .ql-container { font-family: 'Montserrat', sans-serif; font-size: 14px; }
         .ql-editor { min-height: 200px; }
+        
+        /* 🎨 GALERIA DE IMAGENS */
+        .galeria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .galeria-item {
+            position: relative;
+            aspect-ratio: 1;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f9fafb;
+            transition: all 0.3s ease;
+        }
+        .galeria-item.principal {
+            border-color: #8B7355;
+            box-shadow: 0 0 0 2px rgba(139, 115, 85, 0.2);
+        }
+        .galeria-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .galeria-acoes {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .galeria-item:hover .galeria-acoes {
+            opacity: 1;
+        }
+        .galeria-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        .galeria-btn:hover {
+            transform: scale(1.1);
+        }
+        .btn-remover {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-mover {
+            background: #6b7280;
+            color: white;
+        }
+        .badge-principal {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            background: #8B7355;
+            color: white;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+        .upload-area:hover {
+            border-color: #8B7355;
+            background: #fef9f3;
+        }
+        .upload-area.dragover {
+            border-color: #8B7355;
+            background: #fef3c7;
+        }
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .upload-progress {
+            display: none;
+            margin-top: 12px;
+            padding: 12px;
+            background: #dbeafe;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #1e40af;
+        }
+        .upload-progress.show {
+            display: block;
+        }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-gray-800">
@@ -73,18 +180,28 @@ import 'quill/dist/quill.snow.css';
                     <input type="text" id="numeracao" class="w-full border p-3 rounded bg-gray-50 focus:bg-white transition" placeholder="Ex: 14, 16, 18 ou 14 ao 20">
                 </div>
 
+                <!-- 📸 NOVA GALERIA UNIFICADA -->
                 <div class="border-t pt-4 mt-4">
-                    <label class="block text-sm font-semibold mb-2">Imagem Principal</label>
-                    <input type="file" id="imagem" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand/10 file:text-brand hover:file:bg-brand/20 cursor-pointer border p-2 rounded">
-                    <div id="preview-imagem" class="w-32 h-32 bg-gray-100 border rounded mt-2 hidden">
-                        <img src="" class="w-full h-full object-cover rounded">
+                    <label class="block text-sm font-semibold mb-3">📸 Fotos da Peça</label>
+                    <p class="text-xs text-gray-500 mb-3">A primeira foto será a imagem principal. Você pode reordenar usando as setas ↑ ↓</p>
+                    
+                    <!-- Área de Upload -->
+                    <div class="upload-area" id="upload-area">
+                        <div class="upload-icon">📤</div>
+                        <p class="text-sm font-semibold text-gray-700">Clique aqui ou arraste as fotos</p>
+                        <p class="text-xs text-gray-500 mt-1">Você pode selecionar várias de uma vez</p>
+                        <input type="file" id="input-imagens" accept="image/*" multiple class="hidden">
                     </div>
-                </div>
-
-                <div class="border-t pt-4">
-                    <label class="block text-sm font-semibold mb-2">Galeria (Fotos Extras)</label>
-                    <input type="file" id="imagens-extras" accept="image/*" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand/10 file:text-brand hover:file:bg-brand/20 cursor-pointer border p-2 rounded">
-                    <div id="preview-galeria" class="flex flex-wrap gap-2 mt-2"></div>
+                    
+                    <!-- Progresso do Upload -->
+                    <div id="upload-progress" class="upload-progress">
+                        ⏳ Enviando imagens... <span id="progress-text">0/0</span>
+                    </div>
+                    
+                    <!-- Grid de Imagens -->
+                    <div id="galeria-container" class="galeria-grid"></div>
+                    
+                    <p id="sem-imagens" class="text-sm text-gray-400 text-center mt-4">Nenhuma foto adicionada ainda</p>
                 </div>
 
                 <div>
@@ -123,8 +240,8 @@ import 'quill/dist/quill.snow.css';
             modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link'], ['clean']] }
         });
 
-        let imagemAtualUrl = '';
-        let galeriaAtual = [];
+        // 🎯 ARRAY INTERNO PARA GERENCIAR TODAS AS IMAGENS
+        let imagens = [];
 
         async function carregarDados() {
             if (isNovo) {
@@ -146,82 +263,143 @@ import 'quill/dist/quill.snow.css';
                 document.getElementById('destaque').checked = prod.destaque;
                 quill.root.innerHTML = prod.descricao || '';
                 
+                // 🔥 LÓGICA INTELIGENTE: Detecta se imagem_url é string ou array JSON
                 if (prod.imagem_url) {
-                    imagemAtualUrl = prod.imagem_url;
-                    const preview = document.getElementById('preview-imagem');
-                    preview.classList.remove('hidden');
-                    preview.querySelector('img').src = prod.imagem_url;
-                }
-
-                if (prod.galeria_urls && Array.isArray(prod.galeria_urls)) {
-                    galeriaAtual = prod.galeria_urls;
+                    if (typeof prod.imagem_url === 'string') {
+                        try {
+                            const parsed = JSON.parse(prod.imagem_url);
+                            imagens = Array.isArray(parsed) ? parsed : [prod.imagem_url];
+                        } catch {
+                            imagens = [prod.imagem_url];
+                        }
+                    } else if (Array.isArray(prod.imagem_url)) {
+                        imagens = prod.imagem_url;
+                    }
                     renderizarGaleria();
                 }
             }
         }
         carregarDados();
 
+        // 🎨 RENDERIZAR GALERIA
         function renderizarGaleria() {
-            const container = document.getElementById('preview-galeria');
+            const container = document.getElementById('galeria-container');
+            const semImagens = document.getElementById('sem-imagens');
+            
+            if (imagens.length === 0) {
+                container.innerHTML = '';
+                semImagens.classList.remove('hidden');
+                return;
+            }
+            
+            semImagens.classList.add('hidden');
             container.innerHTML = '';
-            galeriaAtual.forEach((url, index) => {
-                container.innerHTML += `
-                    <div class="relative w-20 h-20 bg-gray-100 border rounded group">
-                        <img src="${url}" class="w-full h-full object-cover rounded">
-                        <button type="button" onclick="removerImagemGaleria(${index})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow text-xs">×</button>
+            
+            imagens.forEach((url, index) => {
+                const isPrincipal = index === 0;
+                const item = document.createElement('div');
+                item.className = `galeria-item ${isPrincipal ? 'principal' : ''}`;
+                item.innerHTML = `
+                    <img src="${url}" alt="Foto ${index + 1}">
+                    <div class="galeria-acoes">
+                        ${index > 0 ? `<button type="button" class="galeria-btn btn-mover" onclick="moverImagem(${index}, -1)" title="Mover para cima">↑</button>` : ''}
+                        ${index < imagens.length - 1 ? `<button type="button" class="galeria-btn btn-mover" onclick="moverImagem(${index}, 1)" title="Mover para baixo">↓</button>` : ''}
+                        <button type="button" class="galeria-btn btn-remover" onclick="removerImagem(${index})" title="Remover">×</button>
                     </div>
+                    ${isPrincipal ? '<div class="badge-principal">Principal</div>' : ''}
                 `;
+                container.appendChild(item);
             });
         }
 
-        window.removerImagemGaleria = (index) => {
-            galeriaAtual.splice(index, 1);
+        // 🔄 REORDENAR IMAGENS
+        window.moverImagem = (index, direcao) => {
+            const novoIndex = index + direcao;
+            if (novoIndex < 0 || novoIndex >= imagens.length) return;
+            [imagens[index], imagens[novoIndex]] = [imagens[novoIndex], imagens[index]];
             renderizarGaleria();
         };
 
-        document.getElementById('imagem').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const preview = document.getElementById('preview-imagem');
-                    preview.classList.remove('hidden');
-                    preview.querySelector('img').src = e.target.result;
-                };
-                reader.readAsDataURL(file);
+        // 🗑️ REMOVER IMAGEM
+        window.removerImagem = (index) => {
+            if (confirm('Deseja remover esta foto?')) {
+                imagens.splice(index, 1);
+                renderizarGaleria();
             }
+        };
+
+        // 📤 UPLOAD DE IMAGENS
+        const uploadArea = document.getElementById('upload-area');
+        const inputImagens = document.getElementById('input-imagens');
+        const uploadProgress = document.getElementById('upload-progress');
+        const progressText = document.getElementById('progress-text');
+
+        // Clique na área abre o seletor
+        uploadArea.addEventListener('click', () => inputImagens.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
         });
 
-        document.getElementById('imagens-extras').addEventListener('change', async (e) => {
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) processarUpload(files);
+        });
+
+        // Seleção de arquivos
+        inputImagens.addEventListener('change', (e) => {
             const files = e.target.files;
-            if (!files || files.length === 0) return;
+            if (files.length > 0) processarUpload(files);
+        });
 
-            const input = e.target;
-            input.disabled = true;
-
+        // 🚀 PROCESSAR UPLOAD
+        async function processarUpload(files) {
+            uploadProgress.classList.add('show');
+            progressText.innerText = `0/${files.length}`;
+            
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                const fileName = `galeria-${Date.now()}-${i}.${file.name.split('.').pop()}`;
+                const fileName = `produto-${Date.now()}-${i}.${file.name.split('.').pop()}`;
+                
+                progressText.innerText = `${i + 1}/${files.length}`;
                 
                 const { error } = await supabase.storage.from('produtos').upload(fileName, file);
+                
                 if (!error) {
                     const { data } = supabase.storage.from('produtos').getPublicUrl(fileName);
-                    galeriaAtual.push(data.publicUrl);
+                    imagens.push(data.publicUrl);
                 } else {
-                    alert('Erro ao subir imagem extra: ' + error.message);
+                    alert(`Erro ao enviar ${file.name}: ${error.message}`);
                 }
             }
             
             renderizarGaleria();
-            input.value = '';
-            input.disabled = false;
-        });
+            uploadProgress.classList.remove('show');
+            inputImagens.value = '';
+        }
 
+        // 💾 SALVAR PRODUTO
         document.getElementById('form-produto').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
             btn.innerText = 'Salvando...';
             btn.disabled = true;
+
+            // Validação: precisa ter pelo menos 1 imagem
+            if (imagens.length === 0) {
+                alert('Adicione pelo menos uma foto da peça antes de salvar.');
+                btn.innerText = 'Salvar Produto';
+                btn.disabled = false;
+                return;
+            }
 
             const nome = document.getElementById('nome').value;
             const precoCentavos = Math.round(parseFloat(document.getElementById('preco').value) * 100);
@@ -231,26 +409,25 @@ import 'quill/dist/quill.snow.css';
             const destaque = document.getElementById('destaque').checked;
             const descricao = quill.root.innerHTML;
 
-            let finalImagemUrl = imagemAtualUrl;
-            const fileInput = document.getElementById('imagem');
-
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const fileName = `principal-${Date.now()}.${file.name.split('.').pop()}`;
-                
-                const { error: uploadError } = await supabase.storage.from('produtos').upload(fileName, file);
-                if (!uploadError) {
-                    const { data: publicUrlData } = supabase.storage.from('produtos').getPublicUrl(fileName);
-                    finalImagemUrl = publicUrlData.publicUrl;
-                } else {
-                    alert('Erro ao subir imagem principal: ' + uploadError.message);
-                    btn.innerText = 'Salvar Produto';
-                    btn.disabled = false;
-                    return;
-                }
+            // 🔥 LÓGICA DE UNIFICAÇÃO: 1 foto = string, 2+ fotos = array JSON
+            let imagemUrlFinal;
+            if (imagens.length === 1) {
+                imagemUrlFinal = imagens[0]; // String simples (compatível com produtos antigos)
+            } else {
+                imagemUrlFinal = JSON.stringify(imagens); // Array JSON
             }
 
-            const payload = { nome, preco_centavos: precoCentavos, categoria, colecao, numeracao, destaque, descricao, imagem_url: finalImagemUrl, galeria_urls: galeriaAtual };
+            const payload = { 
+                nome, 
+                preco_centavos: precoCentavos, 
+                categoria, 
+                colecao, 
+                numeracao, 
+                destaque, 
+                descricao, 
+                imagem_url: imagemUrlFinal
+                // galeria_urls removido (não existe no banco)
+            };
 
             let error;
             if (isNovo) {
