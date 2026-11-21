@@ -1,0 +1,53 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import PagefindConfig from "astro-pagefind/components/PagefindConfig.astro";
+---
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar - Vivi Correa</title>
+    <meta name="robots" content="noindex, follow">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style is:global>
+        body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
+        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
+        .text-brand { color: #8B7355; }
+        
+        /* Ajustes visuais para o componente do Pagefind */
+        pagefind-searchbox {
+            --pagefind-ui-primary: #8B7355;
+            --pagefind-ui-text: #1f2937;
+            --pagefind-ui-background: #ffffff;
+            --pagefind-ui-border: #e5e7eb;
+            --pagefind-ui-tag: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+    
+    <Header />
+
+    <main class="container mx-auto px-6 py-16 max-w-3xl min-h-[60vh]">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl text-gray-900 mb-4">Buscar Peças</h1>
+            <p class="text-gray-500 text-sm">Encontre anéis, brincos, colares ou coleções pelo nome.</p>
+        </div>
+
+        <!-- Componente de configuração (necessário para injetar o bundle path) -->
+        <PagefindConfig />
+        
+        <!-- Componente de busca nativo da integração -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <pagefind-searchbox></pagefind-searchbox>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-16 text-center text-sm mt-12">
+        <img src="/logo.png" alt="Vivi Correa" class="h-12 mx-auto mb-6 brightness-0 invert opacity-50" />
+        <p class="text-gray-400">&copy; 2026 Vivi Correa. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>

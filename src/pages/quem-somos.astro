@@ -1,0 +1,78 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+---
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Quem Somos - Vivi Correa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style is:global>
+        body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
+        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
+        .text-brand { color: #8B7355; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+    
+    <Header />
+
+    <main class="container mx-auto px-6 py-16 max-w-4xl">
+        
+        <!-- Hero -->
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl text-gray-900 mb-4">Nossa História</h1>
+            <p class="text-gray-500 uppercase tracking-widest text-sm">Arte, memória e transformação</p>
+        </div>
+
+        <!-- Conteúdo -->
+        <div class="flex flex-col md:flex-row gap-12 items-center mb-16">
+            <div class="md:w-1/2">
+                <img src="https://d1a9qnv764bsoo.cloudfront.net/stores/002/065/305/rte/banner_medida anel_site_vivi_regua_verde.jpg" alt="Vivi Correa no ateliê" class="rounded-lg shadow-lg w-full object-cover" />
+            </div>
+            <div class="md:w-1/2 space-y-6 text-gray-600 leading-relaxed">
+                <p>
+                    A Vivi Correa é um ateliê de joias autorais que nasce do encontro entre a matéria e a poesia. Cada peça é criada e produzida manualmente pela artista Vivi Correa, em Salvador, Bahia.
+                </p>
+                <p>
+                    Nossa joalheria não segue tendências passageiras. Buscamos a atemporalidade, o design escultural e a conexão profunda com as histórias que nos formam — seja a madeira da marchetaria, o brilho da prata ou a inspiração nas canções brasileiras.
+                </p>
+            </div>
+        </div>
+
+        <!-- Bloco de Citação/Manifesto -->
+        <div class="bg-[#f0ece6] p-12 rounded-lg text-center mb-16">
+            <h2 class="text-3xl text-gray-900 mb-6">Nosso Propósito</h2>
+            <p class="text-lg italic text-gray-700 max-w-2xl mx-auto font-serif">
+                "Criar joias que não são apenas adornos, mas fragmentos de natureza transformados em arte, para aqueles que reconhecem a beleza na autenticidade e na jornada dos materiais."
+            </p>
+        </div>
+
+        <!-- O Processo -->
+        <div class="text-center mb-12">
+            <h2 class="text-3xl text-gray-900 mb-8">O Processo Artesanal</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl mb-2">1. Inspiração</h3>
+                    <p class="text-sm text-gray-500">Tudo começa com uma história, uma música ou a beleza de uma forma natural.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl mb-2">2. Criação</h3>
+                    <p class="text-sm text-gray-500">Modelagem e escolha dos materiais — prata, ouro, madeira e pedras preciosas.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl mb-2">3. Feito à Mão</h3>
+                    <p class="text-sm text-gray-500">Cada peça é lapidada, texturizada e finalizada manualmente no ateliê.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-gray-900 text-white py-16 text-center text-sm mt-12">
+        <img src="/logo.png" alt="Vivi Correa" class="h-12 mx-auto mb-6 brightness-0 invert opacity-50" />
+        <p class="text-gray-400">&copy; 2026 Vivi Correa. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>

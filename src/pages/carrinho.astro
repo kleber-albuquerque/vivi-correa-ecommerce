@@ -1,0 +1,123 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+---
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Meu Carrinho - Vivi Correa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style is:global>
+        body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
+        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
+        .text-brand { color: #8B7355; }
+        .bg-brand { background-color: #8B7355; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+    
+    <Header />
+
+    <main class="container mx-auto px-6 py-16 min-h-[60vh]">
+        <h1 class="text-3xl md:text-4xl text-center mb-12">Seu Carrinho</h1>
+
+        <!-- Mensagem se o carrinho estiver vazio -->
+        <div id="carrinho-vazio" class="text-center hidden">
+            <p class="text-gray-500 mb-6">Seu carrinho está vazio.</p>
+            <a href="/" class="bg-gray-900 text-white px-8 py-3 rounded text-sm uppercase tracking-wider hover:bg-brand transition">Voltar às compras</a>
+        </div>
+
+        <!-- Lista de Produtos -->
+        <div id="lista-carrinho" class="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-6 hidden">
+            <div id="itens"></div>
+            
+            <!-- Resumo e Checkout -->
+            <div class="mt-8 pt-6 border-t border-gray-100">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="text-lg font-semibold">Total:</span>
+                    <span id="total-carrinho" class="text-2xl font-bold text-brand"></span>
+                </div>
+                
+                <a href="/checkout" class="block text-center w-full bg-gray-900 text-white py-4 uppercase tracking-widest text-sm hover:bg-brand transition">
+                    Ir para o Checkout
+                </a>
+                <p class="text-xs text-center text-gray-400 mt-3">Frete e pagamento serão combinados após a finalização.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-16 text-center text-sm">
+        <img src="/logo.png" alt="Vivi Correa" class="h-12 mx-auto mb-6 brightness-0 invert opacity-50" />
+        
+        <div class="flex justify-center gap-6 mb-8 text-gray-400">
+            <a href="/quem-somos" class="hover:text-white transition">Quem Somos</a>
+            <a href="/ajuda" class="hover:text-white transition">Ajuda & Políticas</a>
+            <a href="https://wa.me/5571991064721" target="_blank" class="hover:text-white transition">Fale Conosco</a>
+        </div>
+        
+        <p class="text-gray-500 text-xs">&copy; 2026 Vivi Correa. Todos os direitos reservados.</p>
+        <p class="mt-2 text-xs text-gray-600">Desenvolvido por KA Agência Criativa</p>
+    </footer>
+
+    <script>
+        let carrinho = JSON.parse(localStorage.getItem('carrinho_vivi')) || [];
+
+        function renderizarCarrinho() {
+            const listaVazia = document.getElementById('carrinho-vazio');
+            const listaCarrinho = document.getElementById('lista-carrinho');
+            const containerItens = document.getElementById('itens');
+
+            if (carrinho.length === 0) {
+                listaVazia.classList.remove('hidden');
+                listaCarrinho.classList.add('hidden');
+                return;
+            }
+
+            listaVazia.classList.add('hidden');
+            listaCarrinho.classList.remove('hidden');
+            containerItens.innerHTML = '';
+            let total = 0;
+
+            carrinho.forEach((item, index) => {
+                total += item.preco * item.quantidade;
+                
+                containerItens.innerHTML += `
+                    <div class="flex items-center gap-4 py-4 border-b border-gray-50">
+                        <img src="${item.imagem}" class="w-20 h-20 object-cover rounded">
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-gray-900">${item.nome}</h3>
+                            <p class="text-sm text-gray-500">Quantidade: ${item.quantidade}</p>
+                            <p class="text-brand font-medium">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.preco)}</p>
+                        </div>
+                        <button onclick="removerItem(${index})" class="text-red-400 hover:text-red-600 p-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                `;
+            });
+
+            document.getElementById('total-carrinho').innerText = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total);
+        }
+
+        function removerItem(index) {
+            carrinho.splice(index, 1);
+            localStorage.setItem('carrinho_vivi', JSON.stringify(carrinho));
+            renderizarCarrinho();
+            
+            // Atualiza o contador do header
+            const totalItens = carrinho.reduce((acc, item) => acc + item.quantidade, 0);
+            const contador = document.getElementById('contador-carrinho');
+            if (totalItens > 0) {
+                contador.innerText = totalItens;
+                contador.classList.remove('hidden');
+            } else {
+                contador.classList.add('hidden');
+            }
+        }
+
+        renderizarCarrinho();
+    </script>
+</body>
+</html>

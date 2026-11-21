@@ -1,0 +1,75 @@
+---
+import { createClient } from '@supabase/supabase-js';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+
+const supabase = createClient(
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+);
+
+const { data: produtos } = await supabase
+  .from('produtos')
+  .select('*')
+  .eq('categoria', 'Colares')
+  .order('nome', { ascending: true });
+---
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Colares - Vivi Correa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style is:global>
+        body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
+        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
+        .text-brand { color: #8B7355; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+    
+import Header from '../components/Header.astro';
+---
+<Header />
+
+
+    <section class="py-12 text-center px-4">
+        <h2 class="text-4xl text-gray-800 mb-4">Colares</h2>
+        <p class="text-gray-500 max-w-xl mx-auto text-sm leading-relaxed">Peças únicas para marcar momentos especiais.</p>
+    </section>
+
+    <main class="container mx-auto px-6 pb-24">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-12">
+                        {produtos?.map((produto) => (
+                <a 
+                    href={`/produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} 
+                    class="group cursor-pointer block"
+                >
+                    <!-- Imagem com efeito de hover -->
+                    <div class="overflow-hidden rounded-sm mb-4 bg-gray-100 aspect-square relative">
+                        <img 
+                            src={produto.imagem_url} 
+                            alt={produto.nome} 
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                        />
+                        <!-- Tag da Coleção -->
+                        {produto.colecao && 
+                            <span class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 text-[10px] uppercase tracking-wider text-gray-600 rounded-sm">
+                                {produto.colecao}
+                            </span>
+                        }
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 mb-1">{produto.categoria}</p>
+                        <h3 class="text-lg text-gray-900 mb-2 leading-tight group-hover:text-brand transition-colors">{produto.nome}</h3>
+                        <p class="text-gray-600 font-medium">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}
+                        </p>
+                    </div>
+                </a>
+            ))}
+        </div>
+    </main>
+</body>
+</html>

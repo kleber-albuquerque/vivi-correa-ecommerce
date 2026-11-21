@@ -1,0 +1,137 @@
+---
+import { createClient } from '@supabase/supabase-js';
+import '../../styles/global.css';
+import Header from '../../components/Header.astro';
+
+export async function getStaticPaths() {
+  const supabase = createClient(
+    import.meta.env.PUBLIC_SUPABASE_URL,
+    import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  const { data: produtos } = await supabase.from('produtos').select('id, nome');
+  
+  return produtos?.map((produto) => {
+    // Gera o slug exatamente igual ao link da home
+    const slug = produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    return { params: { slug: slug }, props: { produtoId: produto.id } };
+  }) || [];
+}
+
+const { produtoId } = Astro.props;
+
+const supabase = createClient(
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+);
+
+const { data: produto } = await supabase
+  .from('produtos')
+  .select('*')
+  .eq('id', produtoId)
+  .single();
+---
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>{produto.nome} - Vivi Correa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style is:global>
+        body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
+        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
+        .text-brand { color: #8B7355; }
+        .hover\:text-brand:hover { color: #8B7355; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+    
+    <Header />
+
+    <main class="container mx-auto px-6 py-16">
+        <div class="flex flex-col md:flex-row gap-12 items-center md:items-start">
+            
+            <!-- Imagem -->
+            <div class="md:w-1/2 w-full">
+                <div class="bg-gray-100 rounded-sm overflow-hidden aspect-square relative">
+                    <img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover" />
+                </div>
+            </div>
+
+            <!-- Informações -->
+            <div class="md:w-1/2 w-full text-center md:text-left">
+                <p class="text-xs uppercase tracking-widest text-brand mb-2">{produto.colecao || produto.categoria}</p>
+                <h1 class="text-4xl text-gray-900 mb-4 leading-tight">{produto.nome}</h1>
+                <p class="text-2xl text-gray-800 font-semibold mb-6">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}
+                </p>
+                
+                {produto.numeracao && (
+                    <p class="text-sm text-gray-600 mb-6 font-semibold">
+                        Numeração disponível: <span class="font-normal">{produto.numeracao}</span>
+                    </p>
+                )}
+                
+                <div class="text-gray-600 leading-relaxed mb-8 whitespace-pre-line text-sm">
+                    {produto.descricao || "Joia artesanal exclusiva Vivi Correa. Cada peça é única e feita à mão com carinho."}
+                </div>
+
+                <!-- Botão de Comprar -->
+                <button id="btn-add-carrinho" class="w-full bg-gray-900 text-white py-4 px-8 uppercase tracking-widest text-sm hover:bg-brand transition duration-300">
+                    Adicionar ao Carrinho
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-gray-100 py-12 text-center text-sm text-gray-400">
+        <p>&copy; 2026 Vivi Correa. Todos os direitos reservados.</p>
+        <p class="mt-2 text-xs">Desenvolvido por KA Agência Criativa</p>
+    </footer>
+
+    <!-- Passamos os dados do produto via data-attributes para o JavaScript ler com segurança -->
+    <div id="dados-produto" 
+         data-id={produto.id} 
+         data-nome={produto.nome} 
+         data-preco={produto.preco_centavos / 100} 
+         data-imagem={produto.imagem_url}
+         class="hidden">
+    </div>
+
+    <script>
+        document.getElementById('btn-add-carrinho').addEventListener('click', () => {
+            // Pega os dados seguros do HTML
+            const divDados = document.getElementById('dados-produto');
+            const produto = {
+                id: divDados.dataset.id,
+                nome: divDados.dataset.nome,
+                preco: parseFloat(divDados.dataset.preco),
+                imagem: divDados.dataset.imagem
+            };
+
+            let carrinho = JSON.parse(localStorage.getItem('carrinho_vivi')) || [];
+            const itemExistente = carrinho.find(item => item.id === produto.id);
+            
+            if (itemExistente) {
+                itemExistente.quantidade += 1;
+            } else {
+                produto.quantidade = 1;
+                carrinho.push(produto);
+            }
+
+            localStorage.setItem('carrinho_vivi', JSON.stringify(carrinho));
+
+            const btn = document.getElementById('btn-add-carrinho');
+            btn.innerText = "Adicionado! ✓";
+            btn.classList.replace('bg-gray-900', 'bg-green-600');
+            
+            setTimeout(() => {
+                btn.innerText = "Adicionar ao Carrinho";
+                btn.classList.replace('bg-green-600', 'bg-gray-900');
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

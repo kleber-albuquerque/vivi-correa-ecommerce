@@ -1,0 +1,89 @@
+---
+import { createClient } from '@supabase/supabase-js';
+import '../../styles/global.css';
+import Header from '../../components/Header.astro';
+
+export async function getStaticPaths() {
+  const supabase = createClient(
+    import.meta.env.PUBLIC_SUPABASE_URL,
+    import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  const { data: produtos } = await supabase.from('produtos').select('colecao');
+  const colecoesUnicas = [...new Set(produtos?.map(p => p.colecao))].filter(Boolean);
+  
+  return colecoesUnicas.map((colecao) => {
+    const slug = colecao.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    return { params: { slug: slug }, props: { colecaoOriginal: colecao } };
+  });
+}
+
+const { slug } = Astro.params;
+const { colecaoOriginal } = Astro.props;
+
+const supabase = createClient(
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+);
+
+const { data: produtos } = await supabase
+  .from('produtos')
+  .select('*')
+  .eq('colecao', colecaoOriginal)
+  .order('nome', { ascending: true });
+---
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>{colecaoOriginal} - Vivi Correa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style is:global>
+        body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
+        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
+        .text-brand { color: #8B7355; }
+        .hover\:text-brand:hover { color: #8B7355; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+    
+    <Header />
+
+    <section class="py-12 text-center px-4">
+        <h2 class="text-4xl text-gray-800 mb-4">{colecaoOriginal}</h2>
+        <a href="/colecoes" class="text-sm text-brand hover:underline">← Voltar para todas as coleções</a>
+    </section>
+
+    <main class="container mx-auto px-6 py-16" data-pagefind-body>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-12">
+            
+            {produtos?.length === 0 && (
+                <p class="col-span-4 text-center text-gray-500">Nenhuma peça encontrada nesta coleção.</p>
+            )}
+
+            {produtos?.map((produto) => (
+                <a 
+                    href={`/produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} 
+                    class="group cursor-pointer block"
+                >
+                    <div class="overflow-hidden rounded-sm mb-4 bg-gray-100 aspect-square relative">
+                        <img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-lg text-gray-900 mb-2 leading-tight group-hover:text-brand transition-colors">{produto.nome}</h3>
+                        <p class="text-gray-600 font-medium">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}
+                        </p>
+                    </div>
+                </a>
+            ))}
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-gray-100 py-12 text-center text-sm text-gray-400">
+        <p>&copy; 2026 Vivi Correa. Todos os direitos reservados.</p>
+        <p class="mt-2 text-xs">Desenvolvido por KA Agência Criativa</p>
+    </footer>
+</body>
+</html>

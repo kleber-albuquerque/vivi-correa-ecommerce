@@ -1,0 +1,53 @@
+---
+import { createClient } from '@supabase/supabase-js';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+
+const supabase = createClient(
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+);
+
+// Busca todos os produtos para extrair as coleções únicas
+const { data: produtos } = await supabase.from('produtos').select('*');
+
+// Filtra as coleções únicas e remove as vazias/nulas
+const colecoesUnicas = [...new Set(produtos?.map(p => p.colecao))].filter(Boolean);
+---
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Coleções - Vivi Correa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style is:global>
+        body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
+        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
+        .text-brand { color: #8B7355; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+    
+import Header from '../components/Header.astro';
+---
+<Header />
+
+
+    <section class="py-16 text-center px-4">
+        <h2 class="text-4xl text-gray-800 mb-4">Nossas Coleções</h2>
+        <p class="text-gray-500 max-w-xl mx-auto text-sm">Explore as narrativas e inspirações por trás de cada criação.</p>
+    </section>
+
+    <main class="container mx-auto px-6 pb-24">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {colecoesUnicas.map((colecao) => (
+                <a href={`/colecoes/${colecao.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group block bg-white border border-gray-100 rounded-lg p-8 text-center hover:shadow-lg transition duration-300">
+    <h3 class="text-2xl text-gray-900 mb-2 group-hover:text-brand transition-colors">{colecao}</h3>
+    <span class="text-xs uppercase tracking-widest text-gray-400 group-hover:text-brand">Ver peças →</span>
+</a>
+            ))}
+        </div>
+    </main>
+</body>
+</html>

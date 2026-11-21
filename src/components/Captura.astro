@@ -1,0 +1,109 @@
+---
+import '../styles/global.css';
+---
+<!-- SEÇÃO NEWSLETTER -->
+<section class="py-20 bg-[#f0ece6] border-t border-gray-200">
+    <div class="container mx-auto px-6 text-center max-w-2xl">
+        <h2 class="text-3xl md:text-4xl text-gray-900 mb-4">Ganhe 10% de desconto na primeira compra</h2>
+        <p class="text-gray-600 mb-8 text-sm">Inscreva-se para receber lançamentos exclusivos, histórias das coleções e ofertas especiais.</p>
+        
+        <form id="form-newsletter" class="flex flex-col md:flex-row gap-3">
+            <input type="text" id="news-nome" placeholder="Seu nome" required class="flex-1 px-4 py-3 border border-gray-300 rounded-sm focus:outline-none focus:border-brand">
+            <input type="email" id="news-email" placeholder="Seu melhor e-mail" required class="flex-1 px-4 py-3 border border-gray-300 rounded-sm focus:outline-none focus:border-brand">
+            <button type="submit" class="bg-gray-900 text-white px-8 py-3 uppercase tracking-wider text-sm hover:bg-brand transition whitespace-nowrap">Quero meu cupom</button>
+        </form>
+        <p id="msg-news" class="text-green-600 text-sm mt-3 hidden font-semibold">Inscrição realizada! O cupom chegará no seu e-mail.</p>
+    </div>
+</section>
+
+<!-- POPUP DE SAÍDA -->
+<div id="popup-exit" class="fixed inset-0 bg-black/60 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 relative transform transition-transform duration-300 scale-95" id="popup-content">
+        <button id="fechar-popup" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <div class="text-center">
+            <h3 class="text-3xl text-gray-900 mb-2">Espere!</h3>
+            <p class="text-gray-600 mb-6 text-sm">Leve <strong>10% de desconto</strong> na sua primeira compra. Insira seu e-mail para resgatar o cupom exclusivo.</p>
+            
+            <form id="form-popup" class="space-y-3">
+                <input type="text" id="popup-nome" placeholder="Seu nome" required class="w-full px-4 py-3 border border-gray-300 rounded-sm focus:outline-none focus:border-brand">
+                <input type="email" id="popup-email" placeholder="Seu e-mail" required class="w-full px-4 py-3 border border-gray-300 rounded-sm focus:outline-none focus:border-brand">
+                <button type="submit" class="w-full bg-brand text-white px-4 py-3 uppercase tracking-wider text-sm font-bold hover:bg-[#7a654b] transition">Resgatar Cupom</button>
+            </form>
+            <p class="text-xs text-gray-400 mt-4">Prometemos não enviar spam. Você pode sair quando quiser.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    import { createClient } from '@supabase/supabase-js';
+    const supabase = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
+
+    async function salvarNewsletter(nome, email) {
+        const { error } = await supabase.from('newsletter').insert([{ nome, email }]);
+        if (error) {
+            if (error.code === '23505') { alert("Este e-mail já está inscrito!"); }
+            else { alert("Erro ao se inscrever: " + error.message); }
+            return false;
+        }
+        return true;
+    }
+
+    document.getElementById('form-newsletter')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nome = document.getElementById('news-nome').value;
+        const email = document.getElementById('news-email').value;
+        const sucesso = await salvarNewsletter(nome, email);
+        if (sucesso) {
+            document.getElementById('msg-news').classList.remove('hidden');
+            document.getElementById('form-newsletter').reset();
+        }
+    });
+
+    let popupMostrado = false;
+    const popup = document.getElementById('popup-exit');
+    const popupContent = document.getElementById('popup-content');
+
+    function mostrarPopup() {
+        popup.classList.remove('hidden');
+        popup.classList.add('flex');
+        setTimeout(() => { popupContent.classList.remove('scale-95'); }, 10);
+        popupMostrado = true;
+    }
+
+    function fecharPopup() {
+        popupContent.classList.add('scale-95');
+        setTimeout(() => {
+            popup.classList.add('hidden');
+            popup.classList.remove('flex');
+        }, 200);
+    }
+
+    document.getElementById('fechar-popup')?.addEventListener('click', fecharPopup);
+    popup?.addEventListener('click', (e) => { if (e.target === popup) fecharPopup(); });
+
+    document.addEventListener('mouseleave', (e) => {
+        if (e.clientY < 0 && !popupMostrado) { mostrarPopup(); }
+    });
+
+    if (window.innerWidth < 768) {
+        setTimeout(() => { if (!popupMostrado) mostrarPopup(); }, 15000);
+    }
+
+    document.getElementById('form-popup')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        btn.innerText = 'Processando...';
+        const nome = document.getElementById('popup-nome').value;
+        const email = document.getElementById('popup-email').value;
+        const sucesso = await salvarNewsletter(nome, email);
+        if (sucesso) {
+            btn.innerText = 'Cupom Enviado!';
+            btn.classList.replace('bg-brand', 'bg-green-600');
+            setTimeout(() => fecharPopup(), 2000);
+        } else {
+            btn.innerText = 'Resgatar Cupom';
+        }
+    });
+</script>

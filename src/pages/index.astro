@@ -1,11 +1,255 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import { createClient } from '@supabase/supabase-js';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Captura from '../components/Captura.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const supabase = createClient(
+  import.meta.env.PUBLIC_SUPABASE_URL,
+  import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+);
+
+const { data: config } = await supabase.from('configuracoes').select('valor').eq('chave', 'banner_home').single();
+let listaBanners = [];
+if (config?.valor) {
+    try {
+        listaBanners = JSON.parse(config.valor);
+        if (!Array.isArray(listaBanners)) listaBanners = [config.valor];
+    } catch {
+        listaBanners = [config.valor];
+    }
+}
+
+const { data: destaques } = await supabase.from('produtos').select('*').eq('destaque', true);
+const { data: aneis } = await supabase.from('produtos').select('*').eq('categoria', 'Anéis');
+const { data: brincos } = await supabase.from('produtos').select('*').eq('categoria', 'Brincos');
+const { data: colares } = await supabase.from('produtos').select('*').eq('categoria', 'Colares');
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vivi Correa - Joias Artesanais</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style is:global>
+        body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
+        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
+        .text-brand { color: #8B7355; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Animação de Fade-in */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Efeito de hover nos botões */
+        .btn-primary {
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(139, 115, 85, 0.2);
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+
+    <Header />
+
+    {listaBanners.length > 0 && (
+        <section class="relative w-full bg-gray-200 overflow-hidden group">
+            <div id="carrossel" class="flex transition-transform duration-700 ease-in-out h-[200px] md:h-[300px] lg:h-[350px]">
+                {listaBanners.map((url, index) => (
+                    <div class="w-full flex-shrink-0 h-full">
+                        <img src={url} alt={`Banner ${index + 1}`} crossorigin="anonymous" class="w-full h-full object-cover object-center" />
+                    </div>
+                ))}
+            </div>
+            
+            {listaBanners.length > 1 && (
+                <>
+                    <button id="btn-prev" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow z-10">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <button id="btn-next" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow z-10">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                        {listaBanners.map((_, index) => (
+                            <button class="w-2 h-2 rounded-full bg-white/50 indicator-dot transition" data-index={index}></button>
+                        ))}
+                    </div>
+                </>
+            )}
+        </section>
+    )}
+
+    {destaques && destaques.length > 0 && (
+        <section class="py-16 md:py-24 relative group/section reveal">
+            <div class="container mx-auto px-6">
+                <div class="flex justify-between items-end mb-8">
+                    <div>
+                        <h2 class="text-3xl md:text-4xl text-gray-900 mb-2">Destaques</h2>
+                        <p class="text-gray-500 text-sm tracking-wide">Selecionados a dedo para você</p>
+                    </div>
+                </div>
+                <div class="relative">
+                    <button class="scroll-btn-prev absolute -left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                    <div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 scroll-container">
+                        {destaques.map((produto) => (
+                            <a href={`/produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
+                                <div class="overflow-hidden rounded-sm mb-3 bg-gray-100 aspect-square relative"><img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" /></div>
+                                <div class="text-center">
+                                    <h3 class="text-sm text-gray-900 mb-1 leading-tight group-hover/card:text-brand transition-colors truncate">{produto.nome}</h3>
+                                    <p class="text-gray-600 font-medium text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}</p>
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+                    <button class="scroll-btn-next absolute -right-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                </div>
+            </div>
+        </section>
+    )}
+
+    {aneis && aneis.length > 0 && (
+        <section class="py-16 bg-white border-t border-gray-100 relative group/section reveal">
+            <div class="container mx-auto px-6">
+                <div class="flex justify-between items-end mb-8">
+                    <div><h2 class="text-3xl text-gray-900 mb-2">Anéis</h2><p class="text-gray-500 text-sm">Delicadeza que marca presença</p></div>
+                    <a href="/aneis" class="text-sm text-brand hover:underline font-semibold hidden md:block mb-2">Ver todos →</a>
+                </div>
+                <div class="relative">
+                    <button class="scroll-btn-prev absolute -left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                    <div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 scroll-container">
+                        {aneis.map((produto) => (
+                            <a href={`/produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
+                                <div class="overflow-hidden rounded-sm mb-3 bg-gray-100 aspect-square relative"><img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" /></div>
+                                <div class="text-center"><h3 class="text-sm text-gray-900 mb-1 leading-tight group-hover/card:text-brand transition-colors truncate">{produto.nome}</h3><p class="text-gray-600 font-medium text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}</p></div>
+                            </a>
+                        ))}
+                    </div>
+                    <button class="scroll-btn-next absolute -right-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                </div>
+            </div>
+        </section>
+    )}
+
+    {brincos && brincos.length > 0 && (
+        <section class="py-16 relative group/section reveal">
+            <div class="container mx-auto px-6">
+                <div class="flex justify-between items-end mb-8">
+                    <div><h2 class="text-3xl text-gray-900 mb-2">Brincos</h2><p class="text-gray-500 text-sm">O brilho perfeito para o seu olhar</p></div>
+                    <a href="/brincos" class="text-sm text-brand hover:underline font-semibold hidden md:block mb-2">Ver todos →</a>
+                </div>
+                <div class="relative">
+                    <button class="scroll-btn-prev absolute -left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                    <div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 scroll-container">
+                        {brincos.map((produto) => (
+                            <a href={`/produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
+                                <div class="overflow-hidden rounded-sm mb-3 bg-gray-100 aspect-square relative"><img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" /></div>
+                                <div class="text-center"><h3 class="text-sm text-gray-900 mb-1 leading-tight group-hover/card:text-brand transition-colors truncate">{produto.nome}</h3><p class="text-gray-600 font-medium text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}</p></div>
+                            </a>
+                        ))}
+                    </div>
+                    <button class="scroll-btn-next absolute -right-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                </div>
+            </div>
+        </section>
+    )}
+
+    {colares && colares.length > 0 && (
+        <section class="py-16 bg-white border-t border-gray-100 relative group/section reveal">
+            <div class="container mx-auto px-6">
+                <div class="flex justify-between items-end mb-8">
+                    <div><h2 class="text-3xl text-gray-900 mb-2">Colares</h2><p class="text-gray-500 text-sm">Para iluminar o seu colo</p></div>
+                    <a href="/colares" class="text-sm text-brand hover:underline font-semibold hidden md:block mb-2">Ver todos →</a>
+                </div>
+                <div class="relative">
+                    <button class="scroll-btn-prev absolute -left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                    <div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 scroll-container">
+                        {colares.map((produto) => (
+                            <a href={`/produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
+                                <div class="overflow-hidden rounded-sm mb-3 bg-gray-100 aspect-square relative"><img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" /></div>
+                                <div class="text-center"><h3 class="text-sm text-gray-900 mb-1 leading-tight group-hover/card:text-brand transition-colors truncate">{produto.nome}</h3><p class="text-gray-600 font-medium text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}</p></div>
+                            </a>
+                        ))}
+                    </div>
+                    <button class="scroll-btn-next absolute -right-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                </div>
+            </div>
+        </section>
+    )}
+
+    <Captura />
+
+    <footer class="bg-gray-900 text-white py-16 text-center text-sm">
+        <img src="/logo.png" alt="Vivi Correa" class="h-12 mx-auto mb-6 brightness-0 invert opacity-50" />
+        <div class="flex justify-center gap-6 mb-8 text-gray-400">
+            <a href="/quem-somos" class="hover:text-white transition">Quem Somos</a>
+            <a href="/ajuda" class="hover:text-white transition">Ajuda & Políticas</a>
+            <a href="https://wa.me/5571991064721" target="_blank" class="hover:text-white transition">Fale Conosco</a>
+        </div>
+        <p class="text-gray-500 text-xs">&copy; 2026 Vivi Correa. Todos os direitos reservados.</p>
+        <p class="mt-2 text-xs text-gray-600">Desenvolvido por KA Agência Criativa</p>
+    </footer>
+
+    <script>
+        // --- SCRIPT DO CARROSSEL ---
+        if (document.getElementById('carrossel')) {
+            let currentIndex = 0;
+            const carrossel = document.getElementById('carrossel');
+            const totalBanners = parseInt("{listaBanners.length}");
+            const dots = document.querySelectorAll('.indicator-dot');
+            if (totalBanners > 1) {
+                function updateCarrossel() {
+                    carrossel.style.transform = `translateX(-${currentIndex * 100}%)`;
+                    dots.forEach((dot, i) => {
+                        if (i === currentIndex) dot.classList.add('bg-white', 'w-4');
+                        else dot.classList.remove('bg-white', 'w-4');
+                        if (i === currentIndex) dot.classList.remove('bg-white/50');
+                        else dot.classList.add('bg-white/50');
+                    });
+                }
+                setInterval(() => { currentIndex = (currentIndex + 1) % totalBanners; updateCarrossel(); }, 5000);
+                document.getElementById('btn-next')?.addEventListener('click', () => { currentIndex = (currentIndex + 1) % totalBanners; updateCarrossel(); });
+                document.getElementById('btn-prev')?.addEventListener('click', () => { currentIndex = (currentIndex - 1 + totalBanners) % totalBanners; updateCarrossel(); });
+                updateCarrossel();
+            }
+        }
+
+        // --- SCRIPT DAS SETAS DE PRODUTOS ---
+        document.querySelectorAll('.group\\/section').forEach(secao => {
+            const container = secao.querySelector('.scroll-container');
+            const btnPrev = secao.querySelector('.scroll-btn-prev');
+            const btnNext = secao.querySelector('.scroll-btn-next');
+            if (btnPrev && btnNext && container) {
+                btnPrev.addEventListener('click', () => container.scrollBy({ left: -300, behavior: 'smooth' }));
+                btnNext.addEventListener('click', () => container.scrollBy({ left: 300, behavior: 'smooth' }));
+            }
+        });
+
+        // --- SCRIPT DO FADE-IN ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach((el) => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

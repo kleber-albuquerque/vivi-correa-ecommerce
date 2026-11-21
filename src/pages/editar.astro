@@ -1,0 +1,283 @@
+---
+import '../styles/global.css';
+import 'quill/dist/quill.snow.css';
+---
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Produto - Vivi Correa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style is:global>
+        body { font-family: 'Montserrat', sans-serif; background-color: #f4f4f5; margin: 0; }
+        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
+        .text-brand { color: #8B7355; }
+        .bg-brand { background-color: #8B7355; }
+        .ql-container { font-family: 'Montserrat', sans-serif; font-size: 14px; }
+        .ql-editor { min-height: 200px; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800">
+
+    <aside class="w-64 bg-gray-900 text-white flex flex-col">
+        <div class="p-6 text-center border-b border-gray-800">
+            <img src="/logo.png" alt="Vivi Correa" class="h-16 mx-auto brightness-0 invert" />
+            <p class="text-xs uppercase tracking-widest mt-2 text-gray-400">Admin</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="/admin" class="block px-4 py-3 bg-gray-800 rounded text-brand font-semibold">Produtos</a>
+            <a href="/admin/pedidos" class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Pedidos</a>
+            <a href="/admin/config" class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Configurações (Banner)</a>
+            <a href="/admin/conteudo" class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Conteúdo do Site</a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl" id="titulo-pagina">Carregando...</h2>
+                <a href="/admin" class="text-gray-500 hover:text-gray-800 text-sm">← Voltar</a>
+            </div>
+
+            <form id="form-produto" class="bg-white p-8 rounded-lg shadow space-y-6">
+                
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Nome da Peça</label>
+                        <input type="text" id="nome" required class="w-full border p-3 rounded bg-gray-50 focus:bg-white transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Preço (R$)</label>
+                        <input type="number" id="preco" step="0.01" required class="w-full border p-3 rounded bg-gray-50 focus:bg-white transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Categoria</label>
+                        <select id="categoria" class="w-full border p-3 rounded bg-gray-50">
+                            <option value="Anéis">Anéis</option>
+                            <option value="Brincos">Brincos</option>
+                            <option value="Colares">Colares</option>
+                            <option value="Kits de Produtos para presentear">Kits</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Coleção (Opcional)</label>
+                        <input type="text" id="colecao" class="w-full border p-3 rounded bg-gray-50 focus:bg-white transition" placeholder="Ex: Abrolhos, Origens...">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Numeração (Apenas para anéis)</label>
+                    <input type="text" id="numeracao" class="w-full border p-3 rounded bg-gray-50 focus:bg-white transition" placeholder="Ex: 14, 16, 18 ou 14 ao 20">
+                </div>
+
+                <!-- Imagem Principal -->
+                <div class="border-t pt-4 mt-4">
+                    <label class="block text-sm font-semibold mb-2">Imagem Principal</label>
+                    <input type="file" id="imagem" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand/10 file:text-brand hover:file:bg-brand/20 cursor-pointer border p-2 rounded">
+                    <div id="preview-imagem" class="w-32 h-32 bg-gray-100 border rounded mt-2 hidden">
+                        <img src="" class="w-full h-full object-cover rounded">
+                    </div>
+                </div>
+
+                <!-- Galeria de Fotos Extras -->
+                <div class="border-t pt-4">
+                    <label class="block text-sm font-semibold mb-2">Galeria (Fotos Extras - Selecione várias com Ctrl)</label>
+                    <input type="file" id="imagens-extras" accept="image/*" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand/10 file:text-brand hover:file:bg-brand/20 cursor-pointer border p-2 rounded">
+                    <div id="preview-galeria" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Descrição Rica</label>
+                    <div id="editor-descricao"></div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" id="destaque" class="w-5 h-5 accent-brand">
+                    <label class="text-sm font-semibold">Mostrar na vitrine da Home (Destaque)</label>
+                </div>
+
+                <div class="flex justify-end gap-4 pt-4 border-t">
+                    <button type="button" id="btn-excluir" class="px-6 py-2 text-red-600 border border-red-200 rounded hover:bg-red-50 hidden">Excluir Peça</button>
+                    <button type="submit" class="bg-brand text-white px-8 py-3 rounded font-bold uppercase tracking-wider text-sm hover:bg-[#7a654b] transition shadow">Salvar Produto</button>
+                </div>
+                <p id="msg-sucesso" class="text-green-600 text-sm text-right hidden font-bold">Salvo com sucesso!</p>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        import { createClient } from '@supabase/supabase-js';
+        import Quill from 'quill';
+
+        const supabase = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const produtoId = urlParams.get('id');
+        const isNovo = !produtoId;
+
+        const quill = new Quill('#editor-descricao', {
+            theme: 'snow',
+            placeholder: 'Descreva os detalhes, materiais e história da peça...',
+            modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link'], ['clean']] }
+        });
+
+        let imagemAtualUrl = '';
+        let galeriaAtual = [];
+
+        async function carregarDados() {
+            if (isNovo) {
+                document.getElementById('titulo-pagina').innerText = 'Adicionar Nova Peça';
+                return;
+            }
+            
+            document.getElementById('titulo-pagina').innerText = 'Editar Peça';
+            document.getElementById('btn-excluir').classList.remove('hidden');
+
+            const { data: prod } = await supabase.from('produtos').select('*').eq('id', produtoId).single();
+            
+            if (prod) {
+                document.getElementById('nome').value = prod.nome;
+                document.getElementById('preco').value = prod.preco_centavos / 100;
+                document.getElementById('categoria').value = prod.categoria || 'Anéis';
+                document.getElementById('colecao').value = prod.colecao || '';
+                document.getElementById('numeracao').value = prod.numeracao || '';
+                document.getElementById('destaque').checked = prod.destaque;
+                quill.root.innerHTML = prod.descricao || '';
+                
+                if (prod.imagem_url) {
+                    imagemAtualUrl = prod.imagem_url;
+                    const preview = document.getElementById('preview-imagem');
+                    preview.classList.remove('hidden');
+                    preview.querySelector('img').src = prod.imagem_url;
+                }
+
+                if (prod.galeria_urls && Array.isArray(prod.galeria_urls)) {
+                    galeriaAtual = prod.galeria_urls;
+                    renderizarGaleria();
+                }
+            }
+        }
+        carregarDados();
+
+        function renderizarGaleria() {
+            const container = document.getElementById('preview-galeria');
+            container.innerHTML = '';
+            galeriaAtual.forEach((url, index) => {
+                container.innerHTML += `
+                    <div class="relative w-20 h-20 bg-gray-100 border rounded group">
+                        <img src="${url}" class="w-full h-full object-cover rounded">
+                        <button type="button" onclick="removerImagemGaleria(${index})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow text-xs">×</button>
+                    </div>
+                `;
+            });
+        }
+
+        window.removerImagemGaleria = (index) => {
+            galeriaAtual.splice(index, 1);
+            renderizarGaleria();
+        };
+
+        document.getElementById('imagem').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const preview = document.getElementById('preview-imagem');
+                    preview.classList.remove('hidden');
+                    preview.querySelector('img').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('imagens-extras').addEventListener('change', async (e) => {
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
+
+            const input = e.target;
+            input.disabled = true;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileName = `galeria-${Date.now()}-${i}.${file.name.split('.').pop()}`;
+                
+                const { error } = await supabase.storage.from('produtos').upload(fileName, file);
+                if (!error) {
+                    const { data } = supabase.storage.from('produtos').getPublicUrl(fileName);
+                    galeriaAtual.push(data.publicUrl);
+                } else {
+                    alert('Erro ao subir imagem extra: ' + error.message);
+                }
+            }
+            
+            renderizarGaleria();
+            input.value = '';
+            input.disabled = false;
+        });
+
+        document.getElementById('form-produto').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.innerText = 'Salvando...';
+            btn.disabled = true;
+
+            const nome = document.getElementById('nome').value;
+            const precoCentavos = Math.round(parseFloat(document.getElementById('preco').value) * 100);
+            const categoria = document.getElementById('categoria').value;
+            const colecao = document.getElementById('colecao').value;
+            const numeracao = document.getElementById('numeracao').value;
+            const destaque = document.getElementById('destaque').checked;
+            const descricao = quill.root.innerHTML;
+
+            let finalImagemUrl = imagemAtualUrl;
+            const fileInput = document.getElementById('imagem');
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileName = `principal-${Date.now()}.${file.name.split('.').pop()}`;
+                
+                const { error: uploadError } = await supabase.storage.from('produtos').upload(fileName, file);
+                if (!uploadError) {
+                    const { data: publicUrlData } = supabase.storage.from('produtos').getPublicUrl(fileName);
+                    finalImagemUrl = publicUrlData.publicUrl;
+                } else {
+                    alert('Erro ao subir imagem principal: ' + uploadError.message);
+                    btn.innerText = 'Salvar Produto';
+                    btn.disabled = false;
+                    return;
+                }
+            }
+
+            const payload = { nome, preco_centavos: precoCentavos, categoria, colecao, numeracao, destaque, descricao, imagem_url: finalImagemUrl, galeria_urls: galeriaAtual };
+
+            let error;
+            if (isNovo) {
+                const { error: err } = await supabase.from('produtos').insert([payload]);
+                error = err;
+            } else {
+                const { error: err } = await supabase.from('produtos').update(payload).eq('id', produtoId);
+                error = err;
+            }
+
+            if (error) {
+                alert('Erro ao salvar: ' + error.message);
+                btn.innerText = 'Salvar Produto';
+                btn.disabled = false;
+            } else {
+                document.getElementById('msg-sucesso').classList.remove('hidden');
+                setTimeout(() => { window.location.href = '/admin'; }, 1500);
+            }
+        });
+
+        document.getElementById('btn-excluir').addEventListener('click', async () => {
+            if (confirm('Tem certeza que deseja excluir esta peça?')) {
+                await supabase.from('produtos').delete().eq('id', produtoId);
+                window.location.href = '/admin';
+            }
+        });
+    </script>
+</body>
+</html>

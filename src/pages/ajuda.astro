@@ -1,0 +1,107 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+---
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajuda e Políticas - Vivi Correa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style is:global>
+        body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
+        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
+        .text-brand { color: #8B7355; }
+        
+        /* Estilo do Accordion */
+        details > summary { list-style: none; cursor: pointer; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] .arrow { transform: rotate(180deg); }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+    
+    <Header />
+
+    <main class="container mx-auto px-6 py-16 max-w-3xl">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl text-gray-900 mb-4">Central de Ajuda</h1>
+            <p class="text-gray-500 text-sm">Informações sobre entrega, cuidados com as peças, tamanhos e políticas da loja.</p>
+        </div>
+
+        <div class="space-y-4">
+            
+            <!-- Pergunta 1: Prazo de Entrega -->
+            <details class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden group">
+                <summary class="flex justify-between items-center p-6 font-semibold text-lg text-gray-800 hover:bg-gray-50 transition">
+                    Prazo de Produção e Entrega
+                    <svg class="w-5 h-5 text-gray-400 arrow transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </summary>
+                <div class="px-6 pb-6 text-gray-600 text-sm leading-relaxed border-t border-gray-50 pt-4">
+                    <p>Todas as peças são feitas à mão sob encomenda. O prazo de confecção é de <strong>10 dias úteis</strong>, contados a partir da confirmação do pagamento. O prazo de envio dos Correios é calculado separadamente.</p>
+                    <p class="mt-2">Caso precise de uma entrega com urgência, entre em contato pelo WhatsApp para verificarmos a possibilidade de priorizar a produção.</p>
+                </div>
+            </details>
+
+            <!-- Pergunta 2: Guia de Medidas -->
+            <details class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden group">
+                <summary class="flex justify-between items-center p-6 font-semibold text-lg text-gray-800 hover:bg-gray-50 transition">
+                    Guia de Medidas de Anéis
+                    <svg class="w-5 h-5 text-gray-400 arrow transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </summary>
+                <div class="px-6 pb-6 text-gray-600 text-sm leading-relaxed border-t border-gray-50 pt-4">
+                    <p>Para escolher o tamanho ideal do seu anel, meça o diâmetro interno de um anel que já encaixa perfeitamente no seu dedo (em milímetros).</p>
+                    <p class="mt-2">Considere que os anéis feitos com aros mais largos podem precisar de um tamanho acima do habitual para maior conforto.</p>
+                    <a href="https://wa.me/5571991064721" target="_blank" class="text-brand font-semibold hover:underline mt-2 inline-block">Dúvidas? Fale conosco no WhatsApp</a>
+                </div>
+            </details>
+
+            <!-- Pergunta 3: Cuidados -->
+            <details class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden group">
+                <summary class="flex justify-between items-center p-6 font-semibold text-lg text-gray-800 hover:bg-gray-50 transition">
+                    Como Cuidar da Sua Joia
+                    <svg class="w-5 h-5 text-gray-400 arrow transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </summary>
+                <div class="px-6 pb-6 text-gray-600 text-sm leading-relaxed border-t border-gray-50 pt-4">
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>Evite o contato da peça com perfumes, cremes, cloro de piscina e produtos de limpeza.</li>
+                        <li>Retire suas joias antes de dormir, tomar banho ou praticar atividades físicas.</li>
+                        <li>Para limpar a prata, use uma flanela seca ou o produto específico fornecido na compra. Evite produtos abrasivos.</li>
+                        <li>Guarde cada peça individualmente em seu estojo ou saquinho para evitar riscos.</li>
+                    </ul>
+                </div>
+            </details>
+
+            <!-- Pergunta 4: Trocas e Devoluções -->
+            <details class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden group">
+                <summary class="flex justify-between items-center p-6 font-semibold text-lg text-gray-800 hover:bg-gray-50 transition">
+                    Trocas e Devoluções
+                    <svg class="w-5 h-5 text-gray-400 arrow transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </summary>
+                <div class="px-6 pb-6 text-gray-600 text-sm leading-relaxed border-t border-gray-50 pt-4">
+                    <p>Em conformidade com o Código de Defesa do Consumidor, você tem até 7 (sete) dias corridos após o recebimento para solicitar a devolução por desistência.</p>
+                    <p class="mt-2">Trocas por tamanho ou modelo estão sujeitas à disponibilidade de estoque e ao envio da peça sem sinais de uso. Para iniciar uma troca, entre em contato com nossa equipe.</p>
+                </div>
+            </details>
+
+            <!-- Pergunta 5: Política de Privacidade -->
+            <details class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden group">
+                <summary class="flex justify-between items-center p-6 font-semibold text-lg text-gray-800 hover:bg-gray-50 transition">
+                    Política de Privacidade
+                    <svg class="w-5 h-5 text-gray-400 arrow transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </summary>
+                <div class="px-6 pb-6 text-gray-600 text-sm leading-relaxed border-t border-gray-50 pt-4">
+                    <p>Seus dados pessoais (nome, endereço, CPF e contato) são coletados exclusivamente para fins de processamento do pedido, emissão de nota fiscal e comunicação sobre a entrega.</p>
+                    <p class="mt-2">Não compartilhamos suas informações com terceiros para fins de marketing sem o seu consentimento. Seus dados de pagamento são processados em ambiente seguro pelo Pagar.me, não sendo armazenados em nossos servidores.</p>
+                </div>
+            </details>
+
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-16 text-center text-sm mt-12">
+        <img src="/logo.png" alt="Vivi Correa" class="h-12 mx-auto mb-6 brightness-0 invert opacity-50" />
+        <p class="text-gray-400">&copy; 2026 Vivi Correa. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>
