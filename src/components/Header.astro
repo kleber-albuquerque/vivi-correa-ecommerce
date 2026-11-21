@@ -1,6 +1,10 @@
 ---
 import '../styles/global.css';
 const base = import.meta.env.BASE_URL;
+const current = Astro.url.pathname.startsWith(base)
+  ? Astro.url.pathname.slice(base.length - 1)
+  : Astro.url.pathname;
+const ativo = (k) => current === k ? 'text-brand' : 'text-gray-500';
 ---
 <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
     <div class="container mx-auto px-6 py-6 relative">
@@ -36,15 +40,49 @@ const base = import.meta.env.BASE_URL;
     </div>
 </header>
 
+<!-- 📱 MENU INFERIOR MOBILE (só aparece em telas pequenas) -->
+<nav class="mobile-bottom-nav fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
+    <div class="grid grid-cols-4 text-center">
+        <a href={base} class={`flex flex-col items-center gap-1 py-2.5 ${ativo('/')}`}>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span class="text-[10px] uppercase tracking-wider">Início</span>
+        </a>
+        <a href={`${base}colecoes`} class={`flex flex-col items-center gap-1 py-2.5 ${ativo('/colecoes')}`}>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5a2 2 0 011.414.586l7 7a2 2 0 010 2.828l-5 5a2 2 0 01-2.828 0l-7-7A2 2 0 013 10V5a2 2 0 012-2h2z"/></svg>
+            <span class="text-[10px] uppercase tracking-wider">Coleções</span>
+        </a>
+        <a href={`${base}busca`} class={`flex flex-col items-center gap-1 py-2.5 ${ativo('/busca')}`}>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <span class="text-[10px] uppercase tracking-wider">Busca</span>
+        </a>
+        <a href={`${base}carrinho`} class={`flex flex-col items-center gap-1 py-2.5 relative ${ativo('/carrinho')}`}>
+            <span class="relative">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                <span id="contador-carrinho-mobile" class="absolute -top-2 -right-2 bg-brand text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+            </span>
+            <span class="text-[10px] uppercase tracking-wider">Sacola</span>
+        </a>
+    </div>
+</nav>
+
+<style is:global>
+    .mobile-bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
+    @media (max-width: 767px) {
+        body { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+    }
+</style>
+
 <script>
     function atualizarContador() {
         const carrinho = JSON.parse(localStorage.getItem('carrinho_vivi')) || [];
         const total = carrinho.reduce((acc, item) => acc + item.quantidade, 0);
-        const contador = document.getElementById('contador-carrinho');
-        if (contador) {
-            contador.innerText = total;
-            contador.classList.toggle('hidden', total === 0);
-        }
+        ['contador-carrinho', 'contador-carrinho-mobile'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerText = total;
+                el.classList.toggle('hidden', total === 0);
+            }
+        });
     }
     document.addEventListener('DOMContentLoaded', atualizarContador);
     window.addEventListener('carrinho-atualizado', atualizarContador);
