@@ -4,309 +4,345 @@ import '../../styles/global.css';
 import Header from '../../components/Header.astro';
 
 export async function getStaticPaths() {
-  const supabase = createClient(
-    import.meta.env.PUBLIC_SUPABASE_URL,
-    import.meta.env.PUBLIC_SUPABASE_ANON_KEY
-  );
-
+  const supabase = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
   const { data: produtos } = await supabase.from('produtos').select('id, nome');
-  
-  return produtos?.map((produto) => {
-    const slug = produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    return { params: { slug: slug }, props: { produtoId: produto.id } };
-  }) || [];
+  return (produtos || []).map(p => ({
+    params: { slug: p.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'') },
+    props: { produtoId: p.id }
+  }));
 }
 
 const { produtoId } = Astro.props;
+const supabase = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
+const { data: produto } = await supabase.from('produtos').select('*').eq('id', produtoId).single();
+const base = import.meta.env.BASE_URL;
 
-const supabase = createClient(
-  import.meta.env.PUBLIC_SUPABASE_URL,
-  import.meta.env.PUBLIC_SUPABASE_ANON_KEY
-);
-
-const { data: produto } = await supabase
-  .from('produtos')
-  .select('*')
-  .eq('id', produtoId)
-  .single();
-
-// 🔥 LÓGICA INTELIGENTE: Aceita string OU array JSON em imagem_url
 let imagens = [];
-if (produto?.imagem_url) {
-  if (typeof produto.imagem_url === 'string') {
-    // Tenta fazer parse como JSON, se falhar trata como string única
-    try {
-      const parsed = JSON.parse(produto.imagem_url);
-      imagens = Array.isArray(parsed) ? parsed : [produto.imagem_url];
-    } catch {
-      imagens = [produto.imagem_url];
-    }
-  } else if (Array.isArray(produto.imagem_url)) {
-    imagens = produto.imagem_url;
-  }
-}
+const bruto = produto?.imagem_url;
+if (typeof bruto === 'string' && bruto.trim()) {
+  try { const j = JSON.parse(bruto); imagens = Array.isArray(j) ? j.filter(Boolean) : [bruto]; }
+  catch { imagens = [bruto]; }
+} else if (Array.isArray(bruto)) { imagens = bruto.filter(Boolean); }
+if (!imagens.length) imagens = [`${base}logo.png`];
 
-// Fallback se não tiver nenhuma imagem
-if (imagens.length === 0) {
-  imagens = ['/placeholder-produto.jpg'];
-}
-
-const ehUltimaPeca = produto?.estoque === 1;
-const semEstoque = produto?.estoque === 0;
+const preco = (produto?.preco_centavos || 0) / 100;
+const precoBR = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(preco);
+const ultima = produto?.estoque === 1;
+const esgotado = produto?.estoque === 0;
+const numeracao = String(produto?.numeracao || '').split(/[,;]/).map(s=>s.trim()).filter(Boolean);
+const descricao = produto?.descricao || '<p>Joia artesanal exclusiva Vivi Corrêa. Cada peça é única e feita à mão com carinho.</p>';
 ---
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>{produto?.nome || 'Produto'} - Vivi Correa</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
-    <style is:global>
-        body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
-        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
-        .text-brand { color: #8B7355; }
-        .hover\:text-brand:hover { color: #8B7355; }
-        
-        /* 🎨 ANIMAÇÕES E TRANSIÇÕES */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-in { animation: fadeIn 0.8s ease-out; }
-        
-        /* 🔍 ZOOM NA IMAGEM */
-        .zoom-container {
-            overflow: hidden;
-            position: relative;
-            cursor: zoom-in;
-        }
-        .zoom-container img {
-            transition: transform 0.5s ease;
-        }
-        .zoom-container:hover img {
-            transform: scale(1.15);
-        }
-        
-        /* 📸 THUMBNAILS */
-        .thumb {
-            cursor: pointer;
-            opacity: 0.5;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-        .thumb:hover { opacity: 0.8; }
-        .thumb.active {
-            opacity: 1;
-            border-color: #8B7355;
-        }
-        
-        /* 🎉 TOAST NOTIFICATION */
-        .toast {
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            background: white;
-            padding: 16px 24px;
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-            transform: translateX(400px);
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-left: 4px solid #8B7355;
-        }
-        .toast.show {
-            transform: translateX(0);
-        }
-        .toast-icon {
-            width: 24px;
-            height: 24px;
-            background: #8B7355;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-        
-        /* 🏷️ BADGE */
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .badge-unico {
-            background: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fbbf24;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>{produto?.nome || 'Peça'} — Vivi Corrêa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style is:global>
+  .vp{--bg:#faf9f7;--sf:#fff;--sf2:#f4f0e8;--ln:#e7dfd1;--ink:#241d16;--ink2:#6b5f4f;--ink3:#9a8d7a;
+      --g:#8B7355;--g2:#a68a64;--g3:#c9b189;--g4:#e6d3ae;--gs:#f3ebdd;--ok:#2f7d4f;--warn:#c8871b;
+      margin:0;background:var(--bg);color:var(--ink);font-family:'Montserrat',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
+  .vp *{box-sizing:border-box}
+  .vp h1,.vp h2,.vp h3{font-family:'Cormorant Garamond',serif}
+  .vp-rel{position:relative;z-index:1}
+  .vp::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.045;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E")}
+  .vp::after{content:"";position:fixed;top:-200px;left:-160px;width:560px;height:560px;z-index:0;pointer-events:none;
+    background:radial-gradient(circle,rgba(201,177,137,.26),rgba(230,211,174,.1) 45%,rgba(201,177,137,0) 70%)}
+  .vp-wrap{max-width:1180px;margin:0 auto;padding:16px 16px 32px}
+  @media(min-width:768px){.vp-wrap{padding:40px 24px 80px}}
+  .vp-crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px}
+  .vp-crumb a{color:var(--ink2);text-decoration:none;transition:color .25s}
+  .vp-crumb a:hover{color:var(--g)}
+  .vp-crumb b{color:var(--g);font-weight:600}
+  .vp-grid{display:grid;grid-template-columns:1fr;gap:22px;align-items:start}
+  @media(min-width:900px){.vp-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:48px}}
+  .vp-grid>*{min-width:0}
+  @media(min-width:900px){.vp-info{position:sticky;top:calc(var(--hdr-h) + 22px)}}
+
+  .vp-palco{position:relative;background:var(--sf);border:1px solid var(--ln);border-radius:14px;overflow:hidden;aspect-ratio:4/5;box-shadow:0 10px 30px rgba(36,29,22,.08);cursor:zoom-in;touch-action:pan-y}
+  @media(min-width:768px){.vp-palco{aspect-ratio:1}}
+  .vp-palco img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .28s ease,transform .6s cubic-bezier(.22,1,.36,1)}
+  @media(min-width:900px) and (hover:hover){.vp-palco:hover img{transform:scale(1.14)}}
+  .vp-selo{position:absolute;top:12px;left:12px;display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+    padding:6px 11px;border-radius:99px;background:linear-gradient(135deg,#6f5940,var(--g) 55%,var(--g3));color:#fff;box-shadow:0 4px 14px rgba(139,115,85,.4)}
+  .vp-selo.off{background:linear-gradient(135deg,#4a4038,#6b5f4f)}
+  .vp-lupa{position:absolute;right:12px;bottom:12px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.92);border:1px solid var(--ln);color:var(--g);box-shadow:0 4px 14px rgba(36,29,22,.14)}
+  .vp-lupa svg{width:17px;height:17px}
+  .vp-dots{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:6px;pointer-events:none}
+  .vp-dot{width:6px;height:6px;border-radius:99px;background:rgba(36,29,22,.22);transition:all .3s}
+  .vp-dot.on{width:20px;background:var(--g)}
+  .vp-thumbs{display:flex;gap:9px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:11px 2px 4px;scrollbar-width:thin;scrollbar-color:var(--g3) var(--sf2)}
+  .vp-thumbs::-webkit-scrollbar{height:6px}
+  .vp-thumbs::-webkit-scrollbar-track{background:var(--sf2);border-radius:99px}
+  .vp-thumbs::-webkit-scrollbar-thumb{background:var(--g3);border-radius:99px}
+  .vp-thumbs::-webkit-scrollbar-thumb:hover{background:var(--g)}
+  .vp-th{flex:0 0 62px;height:62px;border-radius:9px;overflow:hidden;border:2px solid transparent;background:var(--sf);cursor:pointer;opacity:.55;scroll-snap-align:start;transition:all .28s;padding:0}
+  @media(min-width:768px){.vp-th{flex-basis:74px;height:74px}}
+  .vp-th img{width:100%;height:100%;object-fit:cover;display:block}
+  .vp-th:hover{opacity:.85}
+  .vp-th.on{opacity:1;border-color:var(--g);box-shadow:0 4px 12px rgba(139,115,85,.28)}
+  .vp-dica{margin:8px 0 0;text-align:center;font-size:10.5px;color:var(--ink3);letter-spacing:.05em}
+  @media(min-width:900px){.vp-dica{display:none}}
+
+  .vp-eyebrow{margin:0 0 8px;font-size:10.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--g)}
+  .vp-h1{margin:0 0 10px;font-size:clamp(27px,7.4vw,44px);font-weight:500;line-height:1.08;overflow-wrap:anywhere}
+  .vp-preco{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .vp-preco strong{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,6.6vw,34px);font-weight:600;line-height:1}
+  .vp-preco span{font-size:11px;color:var(--ink3)}
+  .vp-num{margin:0 0 16px}
+  .vp-num-t{font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);margin:0 0 8px}
+  .vp-chips{display:flex;flex-wrap:wrap;gap:7px}
+  .vp-chip{font-size:12px;font-weight:600;color:var(--g);background:var(--gs);border:1px solid var(--g3);border-radius:8px;padding:7px 12px;line-height:1}
+  .vp-desc{font-size:13.5px;line-height:1.8;color:var(--ink2);margin:0 0 20px;overflow-wrap:anywhere}
+  .vp-desc p{margin:0 0 10px}
+  .vp-desc p:last-child{margin-bottom:0}
+  .vp-desc ul,.vp-desc ol{margin:0 0 10px;padding-left:20px}
+  .vp-desc li{margin-bottom:5px}
+  .vp-desc strong{color:var(--ink);font-weight:600}
+  .vp-desc a{color:var(--g);text-decoration:underline;text-underline-offset:3px}
+  .vp-linha{height:1px;background:linear-gradient(90deg,var(--g3),rgba(201,177,137,0));margin:0 0 18px}
+  .vp-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:16px 20px;border:none;border-radius:12px;cursor:pointer;
+    font-family:inherit;font-size:12.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#fff;text-decoration:none;
+    background:linear-gradient(120deg,#6f5940,var(--g) 45%,var(--g2) 76%,var(--g3));background-size:180% 180%;
+    box-shadow:0 8px 22px rgba(139,115,85,.34);transition:background-position .5s,transform .22s,box-shadow .3s}
+  .vp-btn:hover{background-position:100% 0;transform:translateY(-2px);box-shadow:0 13px 30px rgba(139,115,85,.42)}
+  .vp-btn:active{transform:translateY(0) scale(.99)}
+  .vp-btn:disabled{background:#ded6c8;color:#8a7f70;box-shadow:none;cursor:not-allowed;transform:none}
+  .vp-btn-linha{background:none;color:var(--ink2);border:1.5px solid var(--ln);box-shadow:none;margin-top:10px}
+  .vp-btn-linha:hover{border-color:var(--g);color:var(--g);background:var(--gs);transform:none;box-shadow:none}
+  .vp-comprar-desktop{display:none}
+  @media(min-width:900px){.vp-comprar-desktop{display:block}}
+  .vp-aviso{margin:11px 0 0;font-size:11.5px;font-weight:500;color:var(--warn);display:flex;align-items:center;gap:6px}
+  .vp-confianca{display:grid;gap:9px;margin-top:20px;padding-top:18px;border-top:1px solid var(--ln)}
+  .vp-confianca div{display:flex;align-items:center;gap:9px;font-size:11.5px;color:var(--ink2);line-height:1.4}
+  .vp-confianca svg{width:16px;height:16px;color:var(--g);flex-shrink:0}
+
+  .vp-bar{position:fixed;left:0;right:0;bottom:var(--nav-h);z-index:45;display:block;padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid var(--ln);box-shadow:0 -5px 20px rgba(36,29,22,.09)}
+  .vp-bar-in{display:flex;align-items:center;gap:12px;max-width:1180px;margin:0 auto}
+  .vp-bar-v{flex-shrink:0}
+  .vp-bar-v small{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+  .vp-bar-v strong{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;line-height:1.1}
+  .vp-bar .vp-btn{padding:14px 14px;font-size:11px;letter-spacing:.1em}
+  @media(min-width:900px){.vp-bar{display:none}}
+  @media(max-width:899px){.vp{padding-bottom:calc(var(--nav-h) + var(--buy-h) + 16px)}}
+
+  .vp-lb{position:fixed;inset:0;z-index:1300;background:rgba(20,16,12,.97);display:none;align-items:center;justify-content:center;padding:16px;touch-action:pan-y}
+  .vp-lb.on{display:flex}
+  .vp-lb img{max-width:100%;max-height:82vh;object-fit:contain;border-radius:6px;user-select:none;-webkit-user-drag:none}
+  .vp-lb-x{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.22);
+    background:rgba(255,255,255,.1);color:#fff;font-size:23px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .vp-lb-x:hover{background:var(--g);border-color:var(--g)}
+  .vp-lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.2);
+    background:rgba(255,255,255,.09);color:#fff;font-size:25px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .vp-lb-nav:hover{background:var(--g);border-color:var(--g)}
+  .vp-lb-prev{left:10px}.vp-lb-next{right:10px}
+  .vp-lb-num{position:absolute;left:0;right:0;bottom:calc(20px + env(safe-area-inset-bottom));text-align:center;color:rgba(255,255,255,.75);font-size:11.5px;letter-spacing:.16em}
+  @media(max-width:520px){.vp-lb-nav{width:38px;height:38px;font-size:21px}.vp-lb-prev{left:6px}.vp-lb-next{right:6px}}
+
+  .vp-toast{position:fixed;z-index:1400;left:14px;right:14px;bottom:calc(var(--nav-h) + var(--buy-h) + 14px);display:flex;align-items:center;gap:11px;
+    background:var(--sf);border:1px solid var(--ln);border-left:4px solid var(--g);border-radius:12px;padding:13px 15px;
+    box-shadow:0 14px 40px rgba(36,29,22,.22);transform:translateY(240px);transition:transform .45s cubic-bezier(.22,1,.36,1)}
+  .vp-toast.on{transform:none}
+  .vp-toast-i{width:25px;height:25px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;
+    background:linear-gradient(135deg,#6f5940,var(--g) 55%,var(--g3))}
+  .vp-toast-i svg{width:14px;height:14px}
+  .vp-toast p{margin:0;font-size:12.5px;font-weight:600;line-height:1.3}
+  .vp-toast small{display:block;font-size:10.5px;color:var(--ink3);font-weight:400;margin-top:1px}
+  .vp-toast a{margin-left:auto;flex-shrink:0;font-size:10px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--g);text-decoration:none;
+    background:var(--gs);border:1px solid var(--g3);border-radius:8px;padding:8px 11px;transition:all .25s}
+  .vp-toast a:hover{background:var(--g);color:#fff;border-color:var(--g)}
+  @media(min-width:900px){.vp-toast{left:auto;right:22px;bottom:auto;top:calc(var(--hdr-h) + 16px);width:340px;transform:translateX(420px)}.vp-toast.on{transform:none}}
+
+  .vp-foot{background:var(--sf);border-top:1px solid var(--ln);padding:34px 16px;text-align:center;font-size:12px;color:var(--ink3)}
+  .vp-foot .m{margin:0 0 5px;font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--ink2)}
+  .vp-foot p{margin:2px 0}
+  .vp-entra{opacity:0;transform:translateY(16px);animation:vpSobe .7s cubic-bezier(.22,1,.36,1) forwards}
+  .vp-entra.d2{animation-delay:.1s}
+  @keyframes vpSobe{to{opacity:1;transform:none}}
+  @media(prefers-reduced-motion:reduce){.vp-entra{animation:none;opacity:1;transform:none}}
+</style>
 </head>
-<body class="text-gray-800 antialiased">
-    
-    <Header />
+<body class="vp">
+<div class="vp-rel">
+<Header />
 
-    <main class="container mx-auto px-6 py-16 fade-in">
-        <div class="flex flex-col md:flex-row gap-12 items-center md:items-start">
-            
-            <!-- 📸 GALERIA DE FOTOS -->
-            <div class="md:w-1/2 w-full">
-                <!-- Imagem Principal com ZOOM -->
-                <div class="zoom-container bg-white rounded-sm overflow-hidden aspect-square relative mb-4 shadow-sm">
-                    <img 
-                        id="imagem-principal"
-                        src={imagens[0]} 
-                        alt={produto?.nome} 
-                        class="w-full h-full object-cover" 
-                    />
-                    {ehUltimaPeca && (
-                        <div class="absolute top-4 left-4">
-                            <span class="badge badge-unico">✨ Peça única</span>
-                        </div>
-                    )}
-                </div>
-                
-                <!-- Thumbnails (só aparece se tiver mais de 1 foto) -->
-                {imagens.length > 1 && (
-                    <div class="grid grid-cols-4 gap-3">
-                        {imagens.map((img, idx) => (
-                            <div 
-                                class={`thumb bg-white aspect-square rounded overflow-hidden ${idx === 0 ? 'active' : ''}`}
-                                data-src={img}
-                                data-idx={idx}
-                            >
-                                <img src={img} alt={`${produto?.nome} ${idx + 1}`} class="w-full h-full object-cover" />
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
+<main class="vp-wrap">
+  <nav class="vp-crumb" aria-label="Trilha">
+    <a href={base}>Início</a><span>/</span>
+    {produto?.categoria ? <a href={`${base}${String(produto.categoria).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')}`}>{produto.categoria}</a> : <a href={`${base}colecoes`}>Coleções</a>}
+    <span>/</span><b>{produto?.nome}</b>
+  </nav>
 
-            <!-- 📝 INFORMAÇÕES DO PRODUTO -->
-            <div class="md:w-1/2 w-full text-center md:text-left">
-                <p class="text-xs uppercase tracking-widest text-brand mb-2">
-                    {produto?.colecao || produto?.categoria}
-                </p>
-                <h1 class="text-4xl text-gray-900 mb-4 leading-tight">{produto?.nome}</h1>
-                <p class="text-2xl text-gray-800 font-semibold mb-6">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((produto?.preco_centavos || 0) / 100)}
-                </p>
-                
-                {produto?.numeracao && (
-                    <p class="text-sm text-gray-600 mb-6 font-semibold">
-                        Numeração disponível: <span class="font-normal">{produto.numeracao}</span>
-                    </p>
-                )}
-                
-                <div class="text-gray-600 leading-relaxed mb-8 whitespace-pre-line text-sm">
-                    {produto?.descricao || "Joia artesanal exclusiva Vivi Correa. Cada peça é única e feita à mão com carinho."}
-                </div>
-
-                <!-- 🛒 BOTÃO DE COMPRAR -->
-                <button 
-                    id="btn-add-carrinho" 
-                    disabled={semEstoque}
-                    class="w-full bg-gray-900 text-white py-4 px-8 uppercase tracking-widest text-sm hover:bg-brand transition duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                    {semEstoque ? 'Produto Esgotado' : 'Adicionar ao Carrinho'}
-                </button>
-                
-                {ehUltimaPeca && (
-                    <p class="text-xs text-center md:text-left text-amber-700 mt-3 font-medium">
-                        ⚠️ Atenção: última unidade disponível!
-                    </p>
-                )}
-            </div>
-
+  <div class="vp-grid">
+    <section class="vp-entra" aria-label="Fotos da peça">
+      <div class="vp-palco" id="vp-palco" role="button" tabindex="0" aria-label="Ampliar foto">
+        <img id="vp-foto" src={imagens[0]} alt={produto?.nome} />
+        {ultima && <span class="vp-selo">✦ Peça única</span>}
+        {esgotado && <span class="vp-selo off">Esgotada</span>}
+        <span class="vp-lupa" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" d="M21 21l-5-5m2-5a7 7 0 11-14 0 7 7 0 0114 0zM11 8v6M8 11h6"/></svg></span>
+        {imagens.length > 1 && <span class="vp-dots" id="vp-dots">{imagens.map((_,i)=><span class={`vp-dot ${i===0?'on':''}`}></span>)}</span>}
+      </div>
+      {imagens.length > 1 && (
+        <div class="vp-thumbs" id="vp-thumbs">
+          {imagens.map((img,i)=>(
+            <button type="button" class={`vp-th ${i===0?'on':''}`} data-i={i} aria-label={`Foto ${i+1}`}>
+              <img src={img} alt={`${produto?.nome} — foto ${i+1}`} loading="lazy" />
+            </button>
+          ))}
         </div>
-    </main>
+      )}
+      <p class="vp-dica">Toque na foto para ampliar · deslize para ver as outras</p>
+    </section>
 
-    <footer class="bg-white border-t border-gray-100 py-12 text-center text-sm text-gray-400">
-        <p>&copy; 2026 Vivi Correa. Todos os direitos reservados.</p>
-        <p class="mt-2 text-xs">Desenvolvido por KA Agência Criativa</p>
-    </footer>
+    <section class="vp-info vp-entra d2">
+      <p class="vp-eyebrow">{produto?.colecao || produto?.categoria || 'Joia autoral'}</p>
+      <h1 class="vp-h1">{produto?.nome}</h1>
+      <div class="vp-preco"><strong>{precoBR}</strong><span>ou combine o pagamento no WhatsApp</span></div>
+      <div class="vp-linha"></div>
 
-    <!-- 🎉 TOAST NOTIFICATION -->
-    <div id="toast-carrinho" class="toast">
-        <div class="toast-icon">✓</div>
-        <div>
-            <p class="font-semibold text-gray-900 text-sm">Produto adicionado!</p>
-            <p class="text-xs text-gray-500">Veja no seu carrinho</p>
+      {numeracao.length > 0 && (
+        <div class="vp-num">
+          <p class="vp-num-t">Numeração disponível</p>
+          <div class="vp-chips">{numeracao.map(n=><span class="vp-chip">{n}</span>)}</div>
         </div>
-    </div>
+      )}
 
-    <!-- Dados do produto para o JavaScript -->
-    <div id="dados-produto" 
-         data-id={produto?.id} 
-         data-nome={produto?.nome} 
-         data-preco={(produto?.preco_centavos || 0) / 100} 
-         data-imagem={imagens[0]}
-         class="hidden">
-    </div>
+      <div class="vp-desc" set:html={descricao}></div>
 
-    <script>
-        // 🔥 GALERIA: Trocar imagem principal ao clicar nos thumbnails
-        const imagemPrincipal = document.getElementById('imagem-principal');
-        const thumbs = document.querySelectorAll('.thumb');
-        
-        thumbs.forEach(thumb => {
-            thumb.addEventListener('click', () => {
-                // Remove active de todos
-                thumbs.forEach(t => t.classList.remove('active'));
-                // Ativa o clicado
-                thumb.classList.add('active');
-                // Troca a imagem principal com fade
-                imagemPrincipal.style.opacity = '0';
-                setTimeout(() => {
-                    imagemPrincipal.src = thumb.dataset.src;
-                    imagemPrincipal.style.opacity = '1';
-                }, 200);
-            });
-        });
-        
-        // Adiciona transição suave à imagem principal
-        imagemPrincipal.style.transition = 'opacity 0.3s ease';
+      <div class="vp-comprar-desktop">
+        <button type="button" class="vp-btn" id="vp-add" disabled={esgotado}>
+          {esgotado ? 'Peça esgotada' : 'Adicionar à sacola'}
+        </button>
+        <a href={`${base}carrinho`} class="vp-btn vp-btn-linha">Ver minha sacola</a>
+        {ultima && <p class="vp-aviso">✦ Última unidade disponível — peça exclusiva.</p>}
+      </div>
 
-        // 🛒 CARRINHO + TOAST
-        document.getElementById('btn-add-carrinho').addEventListener('click', () => {
-            const divDados = document.getElementById('dados-produto');
-            const produto = {
-                id: divDados.dataset.id,
-                nome: divDados.dataset.nome,
-                preco: parseFloat(divDados.dataset.preco),
-                imagem: imagemPrincipal.src // Pega a imagem atual (caso usuário tenha trocado)
-            };
+      <div class="vp-confianca">
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l7 4v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-4z"/></svg>Feita à mão pela Vivi, peça por peça</div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>Embalagem para presente inclusa</div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.38 8.38 0 01-8.5 8.5 8.5 8.5 0 01-3.8-.9L3 21l1.9-5.7a8.5 8.5 0 1116.1-3.8z"/></svg>Envio e pagamento combinados no WhatsApp</div>
+      </div>
+    </section>
+  </div>
+</main>
 
-            let carrinho = JSON.parse(localStorage.getItem('carrinho_vivi')) || [];
-            const itemExistente = carrinho.find(item => item.id === produto.id);
-            
-            if (itemExistente) {
-                itemExistente.quantidade += 1;
-            } else {
-                produto.quantidade = 1;
-                carrinho.push(produto);
-            }
+<div class="vp-bar" id="vp-bar">
+  <div class="vp-bar-in">
+    <div class="vp-bar-v"><small>{esgotado ? 'Indisponível' : 'Valor'}</small><strong>{precoBR}</strong></div>
+    <button type="button" class="vp-btn" id="vp-add-m" disabled={esgotado}>{esgotado ? 'Esgotada' : 'Adicionar à sacola'}</button>
+  </div>
+</div>
 
-            localStorage.setItem('carrinho_vivi', JSON.stringify(carrinho));
+<div class="vp-lb" id="vp-lb" role="dialog" aria-modal="true" aria-label="Foto ampliada">
+  <button type="button" class="vp-lb-x" id="vp-lb-x" aria-label="Fechar">×</button>
+  {imagens.length > 1 && <button type="button" class="vp-lb-nav vp-lb-prev" id="vp-lb-prev" aria-label="Anterior">‹</button>}
+  <img id="vp-lb-img" src={imagens[0]} alt={produto?.nome} />
+  {imagens.length > 1 && <button type="button" class="vp-lb-nav vp-lb-next" id="vp-lb-next" aria-label="Próxima">›</button>}
+  {imagens.length > 1 && <span class="vp-lb-num" id="vp-lb-num">1 / {imagens.length}</span>}
+</div>
 
-            // 🎉 Mostra o TOAST elegante
-            const toast = document.getElementById('toast-carrinho');
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-            
-            // Dispara evento customizado para o Header atualizar o contador
-            window.dispatchEvent(new CustomEvent('carrinho-atualizado'));
-        });
-    </script>
+<div class="vp-toast" id="vp-toast" role="status" aria-live="polite">
+  <span class="vp-toast-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></span>
+  <div><p>Peça na sua sacola</p><small id="vp-toast-nome">{produto?.nome}</small></div>
+  <a href={`${base}carrinho`}>Ver sacola</a>
+</div>
+
+<div id="vp-dados" class="hidden"
+  data-id={produto?.id}
+  data-nome={produto?.nome}
+  data-preco={preco}
+  data-imagem={imagens[0]}></div>
+
+<footer class="vp-foot">
+  <p class="m">Vivi Corrêa · Joias Autorais</p>
+  <p>&copy; 2026 Vivi Corrêa. Todos os direitos reservados.</p>
+  <p style="font-size:11px">Desenvolvido por KA Agência Criativa</p>
+</footer>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const fotos = Array.from(document.querySelectorAll('.vp-th img')).map(i => i.getAttribute('src'));
+  if (!fotos.length) fotos.push($('vp-foto').getAttribute('src'));
+  let idx = 0, toastT = null;
+
+  function medir(){
+    const bar = $('vp-bar');
+    const h = bar && getComputedStyle(bar).display !== 'none' ? bar.offsetHeight : 0;
+    document.documentElement.style.setProperty('--buy-h', h + 'px');
+  }
+  medir();
+  window.addEventListener('resize', medir);
+  window.addEventListener('orientationchange', () => setTimeout(medir, 260));
+  window.addEventListener('load', medir);
+  if (window.ResizeObserver){ const ro = new ResizeObserver(medir); ro.observe($('vp-bar')); }
+
+  function trocar(i){
+    idx = (i + fotos.length) % fotos.length;
+    const foto = $('vp-foto');
+    foto.style.opacity = '0';
+    setTimeout(() => { foto.src = fotos[idx]; foto.style.opacity = '1'; }, 170);
+    document.querySelectorAll('.vp-th').forEach((t,k) => t.classList.toggle('on', k === idx));
+    document.querySelectorAll('.vp-dot').forEach((d,k) => d.classList.toggle('on', k === idx));
+    const th = document.querySelectorAll('.vp-th')[idx];
+    if (th) th.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
+    if ($('vp-lb').classList.contains('on')){ $('vp-lb-img').src = fotos[idx]; $('vp-lb-num').textContent = `${idx+1} / ${fotos.length}`; }
+  }
+  document.querySelectorAll('.vp-th').forEach(t => t.addEventListener('click', () => trocar(+t.dataset.i)));
+
+  function abrirLB(){ $('vp-lb-img').src = fotos[idx]; const n=$('vp-lb-num'); if(n) n.textContent = `${idx+1} / ${fotos.length}`; $('vp-lb').classList.add('on'); document.body.style.overflow='hidden'; }
+  function fecharLB(){ $('vp-lb').classList.remove('on'); document.body.style.overflow=''; }
+  $('vp-palco').addEventListener('click', abrirLB);
+  $('vp-palco').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); abrirLB(); } });
+  $('vp-lb-x').addEventListener('click', fecharLB);
+  $('vp-lb').addEventListener('click', e => { if (e.target === $('vp-lb')) fecharLB(); });
+  const pv = $('vp-lb-prev'), nx = $('vp-lb-next');
+  if (pv) pv.addEventListener('click', e => { e.stopPropagation(); trocar(idx-1); });
+  if (nx) nx.addEventListener('click', e => { e.stopPropagation(); trocar(idx+1); });
+  document.addEventListener('keydown', e => {
+    if (!$('vp-lb').classList.contains('on')) return;
+    if (e.key === 'Escape') fecharLB();
+    if (e.key === 'ArrowLeft') trocar(idx-1);
+    if (e.key === 'ArrowRight') trocar(idx+1);
+  });
+
+  let x0 = null, y0 = null;
+  function start(e){ const t = e.touches ? e.touches[0] : e; x0 = t.clientX; y0 = t.clientY; }
+  function end(e){
+    if (x0 === null) return;
+    const t = e.changedTouches ? e.changedTouches[0] : e;
+    const dx = t.clientX - x0, dy = t.clientY - y0;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) && fotos.length > 1) trocar(idx + (dx < 0 ? 1 : -1));
+    x0 = y0 = null;
+  }
+  [$('vp-palco'), $('vp-lb')].forEach(el => {
+    el.addEventListener('touchstart', start, { passive:true });
+    el.addEventListener('touchend', end, { passive:true });
+  });
+
+  function adicionar(){
+    const d = $('vp-dados');
+    if (!d || !d.dataset.id) return;
+    const item = { id:d.dataset.id, nome:d.dataset.nome, preco:parseFloat(d.dataset.preco)||0, imagem:fotos[idx] };
+    let c = [];
+    try { c = JSON.parse(localStorage.getItem('carrinho_vivi')) || []; } catch(e){ c = []; }
+    if (!Array.isArray(c)) c = [];
+    const ex = c.find(x => String(x.id) === String(item.id));
+    if (ex) ex.quantidade = (parseInt(ex.quantidade)||0) + 1;
+    else c.push({ ...item, quantidade:1 });
+    localStorage.setItem('carrinho_vivi', JSON.stringify(c));
+    window.dispatchEvent(new CustomEvent('carrinho-atualizado'));
+    $('vp-toast-nome').textContent = item.nome;
+    $('vp-toast').classList.add('on');
+    clearTimeout(toastT);
+    toastT = setTimeout(() => $('vp-toast').classList.remove('on'), 4200);
+  }
+  ['vp-add','vp-add-m'].forEach(id => { const b = $(id); if (b && !b.disabled) b.addEventListener('click', adicionar); });
+</script>
 </body>
 </html>
