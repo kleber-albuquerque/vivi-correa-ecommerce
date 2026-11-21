@@ -33,9 +33,8 @@ jobs:
       - name: Build with Astro
         run: npm run build
         env:
-          # Injeta as variáveis de ambiente durante o build
-          SUPABASE_URL: \${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: \${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -45,7 +44,7 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: \${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
     steps:
