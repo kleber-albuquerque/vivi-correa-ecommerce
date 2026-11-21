@@ -1,0 +1,131 @@
+/* ═══ PAINEL ADMIN — RESPONSIVO ═══ */
+
+/* ── Desktop: mantém sidebar fixa ── */
+@media (min-width: 900px) {
+  body {
+    overflow: hidden;
+  }
+  aside {
+    display: flex !important;
+  }
+  .admin-burger {
+    display: none !important;
+  }
+}
+
+/* ── Mobile: sidebar vira gaveta ── */
+@media (max-width: 899px) {
+  body {
+    flex-direction: column !important;
+    height: auto !important;
+    overflow: auto !important;
+  }
+
+  aside {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 280px !important;
+    max-width: 85vw !important;
+    z-index: 100 !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s ease !important;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.3) !important;
+  }
+
+  aside.aberto {
+    transform: translateX(0) !important;
+  }
+
+  main {
+    padding: 16px !important;
+    margin-top: 60px !important;
+  }
+
+  .admin-burger {
+    display: flex !important;
+    position: fixed !important;
+    top: 12px !important;
+    left: 12px !important;
+    z-index: 99 !important;
+    width: 44px !important;
+    height: 44px !important;
+    background: #1f2937 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+  }
+
+  .admin-scrim {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0,0,0,0.5) !important;
+    z-index: 98 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s ease !important;
+  }
+
+  .admin-scrim.visivel {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  /* Tabelas: rolagem horizontal */
+  table {
+    min-width: 0 !important;
+    font-size: 13px !important;
+  }
+
+  .overflow-x-auto {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Grids: empilham em 1 coluna */
+  .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Botões maiores para toque */
+  button, .btn, a[href] {
+    min-height: 44px !important;
+  }
+
+  /* Imagens menores */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Formulários: padding reduzido */
+  input, select, textarea {
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+
+  /* Títulos menores */
+  h1, h2, h3 {
+    font-size: 1.5em !important;
+  }
+}
+
+/* ── Ajustes gerais ── */
+body {
+  font-family: 'Montserrat', sans-serif;
+}
+
+main {
+  transition: margin-left 0.3s ease;
+}
+
+/* Animação suave ao abrir sidebar */
+aside {
+  transition: transform 0.3s ease;
+}
