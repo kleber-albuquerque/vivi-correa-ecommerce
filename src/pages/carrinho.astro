@@ -1,124 +1,892 @@
 ---
 import '../styles/global.css';
 import Header from '../components/Header.astro';
+const base = import.meta.env.BASE_URL;
 ---
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Meu Carrinho - Vivi Correa</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
-    <style is:global>
-        body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
-        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
-        .text-brand { color: #8B7355; }
-        .bg-brand { background-color: #8B7355; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sua Sacola — Vivi Corrêa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style is:global>
+  .sc{--alabastro:#faf9f7;--perola:#fff;--areia:#f4f0e8;--linho:#e7dfd1;--espresso:#241d16;--tinta2:#6b5f4f;--tinta3:#9a8d7a;
+      --bronze:#8B7355;--bronze2:#a68a64;--ouro:#c9a227;--ouroclaro:#e6d3ae;--cobre:#b06a4f;--lapis:#3d6b96;
+      --verdigris:#2f7d4f;--ambar:#c8871b;--terracota:#c0392b;--bronze-s:#f3ebdd;
+      margin:0;background:var(--alabastro);color:var(--espresso);font-family:'Montserrat',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
+  .sc *{box-sizing:border-box}
+  .sc h1,.sc h2,.sc h3{font-family:'Cormorant Garamond',serif}
+  .sc-rel{position:relative;z-index:1}
+  .sc::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E")}
+  .sc-mesh{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .sc-mesh i{position:absolute;display:block;border-radius:50%;filter:blur(70px);opacity:.4;animation:scFlutua 26s ease-in-out infinite}
+  .sc-mesh i:nth-child(1){width:520px;height:520px;top:-190px;left:-140px;background:radial-gradient(circle,rgba(201,162,39,.5),rgba(230,211,174,.16) 55%,transparent 72%)}
+  .sc-mesh i:nth-child(2){width:460px;height:460px;top:22%;right:-170px;background:radial-gradient(circle,rgba(176,106,79,.42),rgba(139,115,85,.14) 55%,transparent 72%);animation-delay:-9s}
+  .sc-mesh i:nth-child(3){width:400px;height:400px;bottom:-160px;left:28%;background:radial-gradient(circle,rgba(61,107,150,.3),rgba(47,125,79,.12) 55%,transparent 72%);animation-delay:-17s}
+  @keyframes scFlutua{0%,100%{transform:translate3d(0,0,0) scale(1)}33%{transform:translate3d(40px,-34px,0) scale(1.08)}66%{transform:translate3d(-30px,26px,0) scale(.95)}}
+  .sc-wrap{max-width:1200px;margin:0 auto;padding:20px 16px 40px}
+
+  .sc-hero{position:relative;overflow:hidden;border-radius:18px;padding:26px 20px;margin-bottom:18px;color:#fff;
+    background:linear-gradient(118deg,#1b1610 0%,#3d3226 26%,var(--bronze) 58%,var(--ouro) 88%,var(--ouroclaro) 128%);
+    box-shadow:0 18px 44px rgba(36,29,22,.24);opacity:0;transform:translateY(18px);animation:scSobe .75s cubic-bezier(.22,1,.36,1) forwards}
+  .sc-hero::after{content:"";position:absolute;inset:0;opacity:.16;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)'/%3E%3C/svg%3E")}
+  .sc-hero-in{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .sc-hero small{display:block;font-size:10px;letter-spacing:.26em;text-transform:uppercase;opacity:.82;margin-bottom:7px}
+  .sc-hero h1{margin:0;font-size:clamp(30px,8vw,46px);font-weight:500;line-height:1.02}
+  .sc-hero p{margin:8px 0 0;font-size:12.5px;opacity:.9;max-width:44ch;line-height:1.6}
+  .sc-hero-cta{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;padding:12px 18px;border-radius:99px;text-decoration:none;
+    background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.36);color:#fff;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+    backdrop-filter:blur(6px);transition:all .3s}
+  .sc-hero-cta:hover{background:#fff;color:var(--espresso);border-color:#fff;transform:translateY(-2px)}
+  .sc-hero-cta svg{width:15px;height:15px}
+
+  .sc-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--perola);border:1px solid var(--linho);border-radius:14px;padding:12px;margin-bottom:14px;
+    box-shadow:0 2px 10px rgba(36,29,22,.05);opacity:0;transform:translateY(14px);animation:scSobe .7s .08s cubic-bezier(.22,1,.36,1) forwards}
+  .sc-busca{position:relative;flex:1 1 200px;min-width:0}
+  .sc-busca svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--tinta3)}
+  .sc-busca input{width:100%;padding:11px 12px 11px 36px;border:1.5px solid var(--linho);border-radius:10px;background:var(--alabastro);font-family:inherit;font-size:13px;color:var(--espresso);transition:all .25s}
+  .sc-busca input:focus{outline:none;border-color:var(--bronze);background:#fff;box-shadow:0 0 0 4px rgba(139,115,85,.13)}
+  .sc-sel{position:relative}
+  .sc-sel select{appearance:none;padding:11px 34px 11px 13px;border:1.5px solid var(--linho);border-radius:10px;background:var(--alabastro);font-family:inherit;font-size:12px;color:var(--tinta2);cursor:pointer;transition:all .25s}
+  .sc-sel select:focus{outline:none;border-color:var(--bronze);box-shadow:0 0 0 4px rgba(139,115,85,.13)}
+  .sc-sel::after{content:"";position:absolute;right:13px;top:50%;width:9px;height:9px;margin-top:-6px;pointer-events:none;
+    border-right:1.6px solid var(--bronze);border-bottom:1.6px solid var(--bronze);transform:rotate(45deg)}
+  .sc-chk{display:inline-flex;align-items:center;gap:9px;cursor:pointer;font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--tinta2);user-select:none;padding:6px 4px}
+  .sc-chk input{position:absolute;opacity:0;width:0;height:0}
+  .sc-box{width:19px;height:19px;border:1.6px solid var(--linho);border-radius:6px;background:var(--alabastro);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .22s}
+  .sc-box svg{width:12px;height:12px;color:#fff;opacity:0;transform:scale(.5);transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+  .sc-chk input:checked + .sc-box{background:linear-gradient(135deg,#6f5940,var(--bronze) 55%,var(--ouro));border-color:transparent;box-shadow:0 3px 9px rgba(139,115,85,.34)}
+  .sc-chk input:checked + .sc-box svg{opacity:1;transform:none}
+  .sc-chk input:focus-visible + .sc-box{box-shadow:0 0 0 4px rgba(139,115,85,.2)}
+
+  .sc-lote{display:none;align-items:center;gap:9px;flex-wrap:wrap;padding:11px 13px;margin-bottom:14px;border-radius:12px;
+    background:linear-gradient(100deg,rgba(61,107,150,.1),rgba(139,115,85,.1));border:1px solid rgba(61,107,150,.28)}
+  .sc-lote.on{display:flex;animation:scSobe .3s both}
+  .sc-lote b{font-size:12px;color:var(--lapis)}
+  .sc-mini{border:1px solid var(--linho);background:var(--perola);color:var(--tinta2);font-family:inherit;font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    padding:8px 12px;border-radius:8px;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:6px}
+  .sc-mini:hover{border-color:var(--bronze);color:var(--bronze);background:var(--bronze-s)}
+  .sc-mini svg{width:13px;height:13px}
+  .sc-mini.perigo:hover{border-color:var(--terracota);color:var(--terracota);background:#fdf0ee}
+  .sc-mini.cobre:hover{border-color:var(--cobre);color:var(--cobre);background:#fbf1ec}
+
+  .sc-grid{display:grid;grid-template-columns:1fr;gap:18px;align-items:start}
+  .sc-grid>*{min-width:0}
+  .sc-lista{display:grid;gap:12px}
+
+  .sc-item{position:relative;display:grid;grid-template-columns:auto 84px minmax(0,1fr);gap:12px;align-items:start;
+    background:var(--perola);border:1px solid var(--linho);border-radius:14px;padding:13px;box-shadow:0 2px 10px rgba(36,29,22,.05);
+    transition:box-shadow .3s,border-color .3s,transform .25s,opacity .25s}
+  .sc-item:hover{box-shadow:0 12px 30px rgba(36,29,22,.11);border-color:var(--ouroclaro)}
+  .sc-item.fora{opacity:.62}
+  .sc-item.arrastando{opacity:.4;border-style:dashed;border-color:var(--bronze)}
+  .sc-item.alvo{border-color:var(--ouro);box-shadow:0 0 0 3px rgba(201,162,39,.22)}
+  .sc-item.saindo{opacity:0;transform:translateX(-24px)}
+  .sc-grip{display:none;position:absolute;left:-2px;top:50%;transform:translateY(-50%);width:16px;height:34px;cursor:grab;color:var(--ouroclaro);align-items:center;justify-content:center}
+  .sc-grip:active{cursor:grabbing}
+  .sc-grip svg{width:12px;height:12px}
+  .sc-foto{position:relative;width:84px;height:100px;border-radius:10px;overflow:hidden;background:var(--areia);border:1px solid var(--linho);cursor:pointer}
+  .sc-foto img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.22,1,.36,1)}
+  .sc-foto:hover img{transform:scale(1.09)}
+  .sc-foto-zoom{position:absolute;right:4px;bottom:4px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--bronze);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(36,29,22,.18)}
+  .sc-foto-zoom svg{width:12px;height:12px}
+  .sc-corpo{min-width:0;display:flex;flex-direction:column;gap:7px}
+  .sc-eyebrow{font-size:9.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--bronze)}
+  .sc-nome{margin:0;font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;line-height:1.18;overflow-wrap:anywhere;cursor:pointer;transition:color .25s}
+  .sc-nome:hover{color:var(--bronze)}
+  .sc-unit{font-size:11px;color:var(--tinta3)}
+  .sc-tags{display:flex;gap:6px;flex-wrap:wrap}
+  .sc-tag{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:99px;line-height:1.3}
+  .sc-tag.ouro{background:linear-gradient(135deg,#6f5940,var(--bronze) 55%,var(--ouro));color:#fff}
+  .sc-tag.ambar{background:#faf1de;color:#8a5c12;border:1px solid rgba(200,135,27,.4)}
+  .sc-tag.terra{background:#fdf0ee;color:#8f2b1f;border:1px solid rgba(192,57,43,.34)}
+  .sc-tag.lapis{background:#eef3f8;color:#2c5175;border:1px solid rgba(61,107,150,.3)}
+  .sc-rodape{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:2px}
+  .sc-qtd{display:inline-flex;align-items:center;border:1.5px solid var(--linho);border-radius:9px;overflow:hidden;background:var(--alabastro)}
+  .sc-qtd button{width:32px;height:32px;border:none;background:transparent;color:var(--tinta2);font-size:16px;line-height:1;cursor:pointer;transition:all .2s}
+  .sc-qtd button:hover:not(:disabled){background:var(--bronze-s);color:var(--bronze)}
+  .sc-qtd button:disabled{opacity:.32;cursor:not-allowed}
+  .sc-qtd input{width:38px;height:32px;border:none;background:transparent;text-align:center;font-family:inherit;font-size:13px;font-weight:600;color:var(--espresso);-moz-appearance:textfield}
+  .sc-qtd input::-webkit-outer-spin-button,.sc-qtd input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .sc-qtd input:focus{outline:none;background:#fff}
+  .sc-linha-total{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;line-height:1;white-space:nowrap}
+  .sc-acoes{display:flex;gap:12px;flex-wrap:wrap}
+  .sc-link{border:none;background:none;padding:0;font-family:inherit;font-size:10.5px;letter-spacing:.06em;color:var(--tinta3);cursor:pointer;text-decoration:underline;text-underline-offset:3px;transition:color .22s}
+  .sc-link:hover{color:var(--cobre)}
+  .sc-link.perigo:hover{color:var(--terracota)}
+  .sc-link.info:hover{color:var(--lapis)}
+
+  .sc-sk{display:grid;grid-template-columns:84px minmax(0,1fr);gap:12px;background:var(--perola);border:1px solid var(--linho);border-radius:14px;padding:13px}
+  .sc-sk i{display:block;border-radius:8px;background:linear-gradient(100deg,var(--areia) 30%,#fdfbf7 50%,var(--areia) 70%);background-size:220% 100%;animation:scBrilho 1.3s linear infinite}
+  .sc-sk .a{height:100px}
+  .sc-sk .b{height:14px;width:56%;margin-bottom:9px}
+  .sc-sk .c{height:11px;width:34%;margin-bottom:14px}
+  .sc-sk .d{height:30px;width:120px}
+  @keyframes scBrilho{to{background-position:-220% 0}}
+
+  .sc-painel{background:var(--perola);border:1px solid var(--linho);border-radius:16px;overflow:hidden;box-shadow:0 14px 38px rgba(36,29,22,.1);
+    opacity:0;transform:translateY(16px);animation:scSobe .7s .16s cubic-bezier(.22,1,.36,1) forwards}
+  .sc-painel-cab{padding:16px 18px;color:#fff;background:linear-gradient(120deg,#1b1610,#3d3226 22%,var(--bronze) 62%,var(--ouro) 118%)}
+  .sc-painel-cab small{display:block;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;opacity:.82;margin-bottom:3px}
+  .sc-painel-cab h2{margin:0;font-size:23px;font-weight:600}
+  .sc-painel-corpo{padding:16px 18px}
+  .sc-frete{margin-bottom:15px;padding:12px;border-radius:11px;background:linear-gradient(100deg,rgba(61,107,150,.09),rgba(47,125,79,.09));border:1px solid rgba(61,107,150,.24)}
+  .sc-frete-top{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--lapis);font-weight:600;margin-bottom:8px}
+  .sc-frete-top svg{width:15px;height:15px;flex-shrink:0}
+  .sc-frete-bar{height:6px;border-radius:99px;background:#e3e9ef;overflow:hidden}
+  .sc-frete-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--lapis),var(--verdigris) 70%,var(--ouro));transition:width .6s cubic-bezier(.22,1,.36,1)}
+  .sc-frete-nota{margin:8px 0 0;font-size:10.5px;color:var(--tinta2);line-height:1.5}
+  .sc-frete-nota b{color:var(--verdigris)}
+  .sc-cep{display:flex;gap:7px;margin-top:9px}
+  .sc-cep input{flex:1;min-width:0;padding:9px 11px;border:1.5px solid var(--linho);border-radius:9px;background:var(--alabastro);font-family:inherit;font-size:12.5px;color:var(--espresso)}
+  .sc-cep input:focus{outline:none;border-color:var(--lapis);background:#fff;box-shadow:0 0 0 3px rgba(61,107,150,.14)}
+  .sc-cep button{flex-shrink:0;padding:9px 13px;border:1px solid rgba(61,107,150,.35);border-radius:9px;background:#eef3f8;color:var(--lapis);font-family:inherit;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .25s}
+  .sc-cep button:hover{background:var(--lapis);color:#fff;border-color:var(--lapis)}
+  .sc-cupom{display:flex;gap:7px;margin-bottom:15px}
+  .sc-cupom input{flex:1;min-width:0;padding:11px 12px;border:1.5px dashed var(--linho);border-radius:9px;background:var(--alabastro);font-family:inherit;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--espresso)}
+  .sc-cupom input:focus{outline:none;border-color:var(--ouro);border-style:solid;background:#fff;box-shadow:0 0 0 3px rgba(201,162,39,.16)}
+  .sc-cupom button{flex-shrink:0;padding:11px 14px;border:none;border-radius:9px;background:linear-gradient(135deg,#6f5940,var(--bronze) 60%,var(--ouro));color:#fff;font-family:inherit;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .25s;box-shadow:0 4px 12px rgba(139,115,85,.3)}
+  .sc-cupom button:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(139,115,85,.4)}
+  .sc-cupom-msg{display:none;margin:-9px 0 14px;font-size:11px;line-height:1.5}
+  .sc-cupom-msg.on{display:block}
+  .sc-cupom-msg.ok{color:var(--verdigris)}
+  .sc-cupom-msg.err{color:var(--terracota)}
+  .sc-cupom-ativo{display:none;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;padding:10px 12px;border-radius:10px;
+    background:linear-gradient(100deg,rgba(47,125,79,.11),rgba(201,162,39,.12));border:1px solid rgba(47,125,79,.3)}
+  .sc-cupom-ativo.on{display:flex}
+  .sc-cupom-ativo b{font-size:11.5px;color:var(--verdigris);letter-spacing:.08em}
+  .sc-cupom-ativo button{border:none;background:none;color:var(--tinta3);font-size:16px;line-height:1;cursor:pointer;padding:2px 4px}
+  .sc-cupom-ativo button:hover{color:var(--terracota)}
+  .sc-l{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;color:var(--tinta2);margin-bottom:8px;gap:10px}
+  .sc-l b{font-weight:600;color:var(--espresso)}
+  .sc-l.desc b{color:var(--verdigris)}
+  .sc-total{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px;padding-top:13px;border-top:1px dashed var(--linho)}
+  .sc-total span{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta2)}
+  .sc-total strong{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;line-height:1}
+  .sc-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:16px 20px;border:none;border-radius:12px;cursor:pointer;text-decoration:none;
+    font-family:inherit;font-size:12.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#fff;
+    background:linear-gradient(120deg,#1b1610,#3d3226 18%,var(--bronze) 52%,var(--ouro) 92%,var(--ouroclaro) 130%);background-size:190% 180%;
+    box-shadow:0 10px 26px rgba(139,115,85,.36);transition:background-position .55s,transform .22s,box-shadow .3s}
+  .sc-btn:hover{background-position:100% 0;transform:translateY(-2px);box-shadow:0 15px 34px rgba(139,115,85,.46)}
+  .sc-btn:active{transform:translateY(0) scale(.99)}
+  .sc-btn:disabled{background:#ded6c8;color:#8a7f70;box-shadow:none;cursor:not-allowed;transform:none}
+  .sc-btn svg{width:16px;height:16px}
+  .sc-btn-linha{background:none;color:var(--tinta2);border:1.5px solid var(--linho);box-shadow:none;margin-top:10px}
+  .sc-btn-linha:hover{border-color:var(--bronze);color:var(--bronze);background:var(--bronze-s);transform:none;box-shadow:none}
+  .sc-nota{margin:11px 0 0;font-size:10.5px;color:var(--tinta3);text-align:center;line-height:1.6}
+  .sc-selos{display:grid;gap:8px;padding:14px 18px;border-top:1px solid var(--linho);background:var(--alabastro)}
+  .sc-selos div{display:flex;align-items:center;gap:9px;font-size:11px;color:var(--tinta2);line-height:1.4}
+  .sc-selos svg{width:15px;height:15px;flex-shrink:0;color:var(--bronze)}
+
+  .sc-secao{margin-top:26px;opacity:0;transform:translateY(20px);transition:opacity .7s,transform .7s}
+  .sc-secao.vis{opacity:1;transform:none}
+  .sc-secao-cab{display:flex;align-items:center;gap:11px;margin-bottom:13px}
+  .sc-secao-cab i{display:block;width:34px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--cobre),var(--ouro))}
+  .sc-secao-cab h2{margin:0;font-size:25px;font-weight:600}
+  .sc-secao-cab span{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta3);margin-left:auto}
+  .sc-salvos{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px}
+  .sc-salvo{background:var(--perola);border:1px solid var(--linho);border-radius:13px;overflow:hidden;box-shadow:0 2px 9px rgba(36,29,22,.05);transition:all .3s}
+  .sc-salvo:hover{border-color:var(--cobre);box-shadow:0 12px 28px rgba(176,106,79,.16);transform:translateY(-3px)}
+  .sc-salvo img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--areia)}
+  .sc-salvo-c{padding:11px}
+  .sc-salvo-n{margin:0 0 4px;font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;line-height:1.2;overflow-wrap:anywhere}
+  .sc-salvo-p{font-size:12px;font-weight:600;color:var(--cobre);margin-bottom:9px}
+  .sc-salvo-a{display:flex;gap:7px}
+  .sc-salvo-a button{flex:1;padding:8px 6px;border-radius:8px;font-family:inherit;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .25s}
+  .sc-salvo-a .voltar{border:none;background:linear-gradient(135deg,#8a4f38,var(--cobre) 65%,#d59a7f);color:#fff}
+  .sc-salvo-a .voltar:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(176,106,79,.35)}
+  .sc-salvo-a .lixo{flex:0 0 34px;border:1px solid var(--linho);background:var(--alabastro);color:var(--tinta3);font-size:14px}
+  .sc-salvo-a .lixo:hover{border-color:var(--terracota);color:var(--terracota);background:#fdf0ee}
+
+  .sc-vazio{display:none;text-align:center;max-width:560px;margin:22px auto;background:var(--perola);border:1px solid var(--linho);border-radius:18px;padding:42px 22px;box-shadow:0 16px 44px rgba(36,29,22,.09)}
+  .sc-vazio.on{display:block;animation:scSobe .6s both}
+  .sc-vazio-ic{width:88px;height:88px;margin:0 auto 6px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--areia),var(--ouroclaro));color:var(--bronze);position:relative}
+  .sc-vazio-ic::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:1.5px solid var(--ouroclaro);animation:scPulso 2.4s ease-out infinite}
+  .sc-vazio-ic svg{width:40px;height:40px}
+  @keyframes scPulso{from{transform:scale(.88);opacity:.85}to{transform:scale(1.22);opacity:0}}
+  .sc-vazio h2{margin:14px 0 8px;font-size:31px;font-weight:500}
+  .sc-vazio p{margin:0 0 22px;font-size:13.5px;color:var(--tinta2);line-height:1.7}
+  .sc-vazio .sc-btn{max-width:300px;margin:0 auto 10px}
+  .sc-reco{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:22px;text-align:left}
+  .sc-reco-c{background:var(--perola);border:1px solid var(--linho);border-radius:13px;overflow:hidden;transition:all .3s;display:flex;flex-direction:column}
+  .sc-reco-c:hover{border-color:var(--ouro);box-shadow:0 12px 28px rgba(201,162,39,.18);transform:translateY(-3px)}
+  .sc-reco-c img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--areia)}
+  .sc-reco-b{padding:11px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .sc-reco-n{margin:0;font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;line-height:1.2}
+  .sc-reco-p{font-size:12px;font-weight:600;color:var(--bronze);margin-top:auto}
+  .sc-reco-b button{padding:9px;border:none;border-radius:8px;background:linear-gradient(135deg,#6f5940,var(--bronze) 60%,var(--ouro));color:#fff;font-family:inherit;font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .25s}
+  .sc-reco-b button:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(139,115,85,.34)}
+
+  .sc-bar{position:fixed;left:0;right:0;bottom:var(--nav-h);z-index:45;display:none;padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid var(--linho);box-shadow:0 -6px 22px rgba(36,29,22,.1)}
+  .sc-bar-in{display:flex;align-items:center;gap:12px;max-width:1200px;margin:0 auto}
+  .sc-bar-v{flex-shrink:0}
+  .sc-bar-v small{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta3)}
+  .sc-bar-v strong{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;line-height:1.1}
+  .sc-bar .sc-btn{padding:14px;font-size:11px;letter-spacing:.1em}
+
+  .sc-gaveta-scrim{position:fixed;inset:0;z-index:70;background:rgba(27,22,16,.55);backdrop-filter:blur(3px);opacity:0;transition:opacity .32s}
+  .sc-gaveta-scrim[hidden]{display:none}
+  .sc-gaveta-scrim.on{opacity:1}
+  .sc-gaveta{position:fixed;top:0;right:0;bottom:0;z-index:71;width:min(94vw,430px);background:var(--alabastro);display:flex;flex-direction:column;
+    transform:translateX(102%);visibility:hidden;transition:transform .4s cubic-bezier(.22,1,.36,1),visibility .4s;box-shadow:-16px 0 48px rgba(36,29,22,.26)}
+  .sc-gaveta.on{transform:none;visibility:visible}
+  .sc-gaveta-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;background:var(--perola);border-bottom:1px solid var(--linho)}
+  .sc-gaveta-top small{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--bronze);font-weight:600}
+  .sc-gaveta-x{width:34px;height:34px;border:1px solid var(--linho);border-radius:50%;background:var(--alabastro);color:var(--tinta2);font-size:20px;line-height:1;cursor:pointer;transition:all .25s}
+  .sc-gaveta-x:hover{background:var(--bronze);color:#fff;border-color:var(--bronze)}
+  .sc-gaveta-corpo{flex:1;overflow-y:auto;padding:17px;scrollbar-width:thin;scrollbar-color:var(--ouroclaro) var(--areia)}
+  .sc-gaveta-corpo::-webkit-scrollbar{width:9px}
+  .sc-gaveta-corpo::-webkit-scrollbar-track{background:var(--areia)}
+  .sc-gaveta-corpo::-webkit-scrollbar-thumb{background:var(--ouroclaro);border-radius:99px;border:2px solid var(--areia)}
+  .sc-gaveta-corpo::-webkit-scrollbar-thumb:hover{background:var(--bronze)}
+  .sc-gaveta-foto{width:100%;aspect-ratio:1;object-fit:cover;border-radius:13px;border:1px solid var(--linho);background:var(--areia);display:block}
+  .sc-gaveta-th{display:flex;gap:8px;overflow-x:auto;padding:10px 2px 4px;scrollbar-width:thin;scrollbar-color:var(--ouroclaro) var(--areia)}
+  .sc-gaveta-th::-webkit-scrollbar{height:6px}
+  .sc-gaveta-th::-webkit-scrollbar-track{background:var(--areia);border-radius:99px}
+  .sc-gaveta-th::-webkit-scrollbar-thumb{background:var(--ouroclaro);border-radius:99px}
+  .sc-gaveta-th button{flex:0 0 56px;height:56px;padding:0;border:2px solid transparent;border-radius:9px;overflow:hidden;background:var(--areia);cursor:pointer;opacity:.55;transition:all .25s}
+  .sc-gaveta-th button.on{opacity:1;border-color:var(--bronze)}
+  .sc-gaveta-th img{width:100%;height:100%;object-fit:cover;display:block}
+  .sc-gaveta h3{margin:14px 0 6px;font-size:27px;font-weight:600;line-height:1.1}
+  .sc-gaveta-preco{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--bronze);margin-bottom:12px}
+  .sc-gaveta-desc{font-size:13px;line-height:1.8;color:var(--tinta2);overflow-wrap:anywhere}
+  .sc-gaveta-desc p{margin:0 0 9px}
+  .sc-gaveta-desc ul,.sc-gaveta-desc ol{margin:0 0 9px;padding-left:19px}
+  .sc-gaveta-desc strong{color:var(--espresso)}
+  .sc-gaveta-pe{padding:14px 17px calc(14px + env(safe-area-inset-bottom));background:var(--perola);border-top:1px solid var(--linho);display:grid;gap:9px}
+
+  .sc-toast{position:fixed;z-index:1400;left:14px;right:14px;bottom:calc(var(--nav-h) + var(--buy-h) + 14px);display:flex;align-items:center;gap:11px;
+    background:var(--perola);border:1px solid var(--linho);border-left:4px solid var(--bronze);border-radius:12px;padding:13px 15px;
+    box-shadow:0 16px 42px rgba(36,29,22,.24);transform:translateY(280px);transition:transform .45s cubic-bezier(.22,1,.36,1)}
+  .sc-toast.on{transform:none}
+  .sc-toast.err{border-left-color:var(--terracota)}
+  .sc-toast.ok{border-left-color:var(--verdigris)}
+  .sc-toast p{margin:0;font-size:12.5px;font-weight:500;line-height:1.4}
+  .sc-toast button{margin-left:auto;flex-shrink:0;border:none;background:var(--bronze-s);color:var(--bronze);font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;border-radius:8px;padding:9px 12px;cursor:pointer;transition:all .25s}
+  .sc-toast button:hover{background:var(--bronze);color:#fff}
+
+  .sc-foot{background:var(--perola);border-top:1px solid var(--linho);padding:34px 16px;text-align:center;font-size:12px;color:var(--tinta3)}
+  .sc-foot .m{margin:0 0 5px;font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--tinta2)}
+  .sc-foot p{margin:2px 0}
+  @keyframes scSobe{to{opacity:1;transform:none}}
+
+  @media (max-width:899px){ .sc{padding-bottom:calc(var(--nav-h) + var(--buy-h) + 16px)} .sc-bar{display:block} .sc-painel .sc-btn.principal{display:none} }
+  @media (min-width:560px){ .sc-item{grid-template-columns:auto 104px minmax(0,1fr);gap:15px;padding:15px} .sc-foto{width:104px;height:126px} .sc-nome{font-size:22px} }
+  @media (min-width:900px){
+    .sc-wrap{padding:36px 24px 84px}
+    .sc-hero{padding:36px 32px}
+    .sc-grid{grid-template-columns:minmax(0,1.62fr) minmax(0,1fr);gap:30px}
+    .sc-painel{position:sticky;top:calc(var(--hdr-h) + 20px)}
+    .sc-bar{display:none}
+    .sc-item{padding-left:24px}
+    .sc-grip{display:flex}
+    .sc-toast{left:auto;right:22px;bottom:auto;top:calc(var(--hdr-h) + 16px);width:352px;transform:translateX(430px)}
+    .sc-toast.on{transform:none}
+  }
+  @media (prefers-reduced-motion:reduce){ .sc *,.sc *::before,.sc *::after{animation:none!important;transition:none!important} .sc-hero,.sc-tools,.sc-painel,.sc-secao{opacity:1;transform:none} }
+</style>
 </head>
-<body class="text-gray-800 antialiased">
-    
-    <Header />
+<body class="sc">
+<div class="sc-mesh" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="sc-rel">
+<Header />
 
-    <main class="container mx-auto px-6 py-16 min-h-[60vh]">
-        <h1 class="text-3xl md:text-4xl text-center mb-12">Seu Carrinho</h1>
+<main class="sc-wrap">
+  <section class="sc-hero">
+    <div class="sc-hero-in">
+      <div>
+        <small>Vivi Corrêa · Joias autorais</small>
+        <h1>Sua sacola</h1>
+        <p id="sc-hero-txt">Cada peça é única, feita à mão. Revise com calma antes de finalizar.</p>
+      </div>
+      <a href={`${base}colecoes`} class="sc-hero-cta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Continuar escolhendo
+      </a>
+    </div>
+  </section>
 
-        <!-- Mensagem se o carrinho estiver vazio -->
-        <div id="carrinho-vazio" class="text-center hidden">
-            <p class="text-gray-500 mb-6">Seu carrinho está vazio.</p>
-            <a href={`${import.meta.env.BASE_URL}`} class="bg-gray-900 text-white px-8 py-3 rounded text-sm uppercase tracking-wider hover:bg-brand transition">Voltar às compras</a>
+  <div id="sc-cheio">
+    <div class="sc-tools">
+      <label class="sc-chk"><input type="checkbox" id="sc-todos"><span class="sc-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></span>Todas</label>
+      <div class="sc-busca">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="search" id="sc-busca" placeholder="Buscar na sacola…" aria-label="Buscar na sacola">
+      </div>
+      <div class="sc-sel">
+        <select id="sc-ordem" aria-label="Ordenar">
+          <option value="manual">Minha ordem</option>
+          <option value="nome">Nome A–Z</option>
+          <option value="caro">Maior valor</option>
+          <option value="barato">Menor valor</option>
+          <option value="qtd">Mais peças</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sc-lote" id="sc-lote">
+      <b id="sc-lote-n">0 selecionadas</b>
+      <button type="button" class="sc-mini cobre" id="sc-lote-salvar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-4-7 4V5z"/></svg>Guardar para depois</button>
+      <button type="button" class="sc-mini perigo" id="sc-lote-remover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>Remover</button>
+      <button type="button" class="sc-mini" id="sc-lote-limpar">Limpar seleção</button>
+    </div>
+
+    <div class="sc-grid">
+      <div>
+        <div class="sc-lista" id="sc-lista">
+          <div class="sc-sk"><i class="a"></i><div><i class="b"></i><i class="c"></i><i class="d"></i></div></div>
+          <div class="sc-sk"><i class="a"></i><div><i class="b"></i><i class="c"></i><i class="d"></i></div></div>
         </div>
+        <p class="sc-nota" id="sc-arraste-nota" style="text-align:left;margin-top:12px">Arraste pelo punho à esquerda para reordenar suas peças. Sua organização fica salva neste aparelho.</p>
 
-        <!-- Lista de Produtos -->
-        <div id="lista-carrinho" class="max-w-3xl mx-auto bg-white rounded-lg shadow-sm p-6 hidden">
-            <div id="itens"></div>
-            
-            <!-- Resumo e Checkout -->
-            <div class="mt-8 pt-6 border-t border-gray-100">
-                <div class="flex justify-between items-center mb-6">
-                    <span class="text-lg font-semibold">Total:</span>
-                    <span id="total-carrinho" class="text-2xl font-bold text-brand"></span>
-                </div>
-                
-                <a href={`${import.meta.env.BASE_URL}checkout`} class="block text-center w-full bg-gray-900 text-white py-4 uppercase tracking-widest text-sm hover:bg-brand transition">
-                    Ir para o Checkout
-                </a>
-                <p class="text-xs text-center text-gray-400 mt-3">Frete e pagamento serão combinados após a finalização.</p>
+        <section class="sc-secao" id="sc-secao-salvos" style="display:none">
+          <div class="sc-secao-cab"><i></i><h2>Guardadas para depois</h2><span id="sc-salvos-n">0</span></div>
+          <div class="sc-salvos" id="sc-salvos"></div>
+        </section>
+      </div>
+
+      <aside class="sc-painel">
+        <div class="sc-painel-cab"><small>Resumo</small><h2>Seu pedido</h2></div>
+        <div class="sc-painel-corpo">
+          <div class="sc-frete" id="sc-frete">
+            <div class="sc-frete-top">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M1 3h15v13H1zM16 8h4l3 3v5h-7zM5.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18.5 21a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/></svg>
+              <span id="sc-frete-titulo">Envio combinado com a Vivi</span>
             </div>
+            <div class="sc-frete-bar" id="sc-frete-bar-wrap" style="display:none"><i id="sc-frete-bar"></i></div>
+            <p class="sc-frete-nota" id="sc-frete-nota">Informe seu CEP para saber cidade e prazo estimado.</p>
+            <div class="sc-cep">
+              <input type="text" id="sc-cep" inputmode="numeric" maxlength="9" placeholder="00000-000" aria-label="CEP">
+              <button type="button" id="sc-cep-btn">Calcular</button>
+            </div>
+          </div>
+
+          <div class="sc-cupom" id="sc-cupom-form">
+            <input type="text" id="sc-cupom" placeholder="Cupom de desconto" aria-label="Cupom">
+            <button type="button" id="sc-cupom-btn">Aplicar</button>
+          </div>
+          <p class="sc-cupom-msg" id="sc-cupom-msg"></p>
+          <div class="sc-cupom-ativo" id="sc-cupom-ativo">
+            <b id="sc-cupom-label">CUPOM · −10%</b>
+            <button type="button" id="sc-cupom-x" aria-label="Remover cupom">×</button>
+          </div>
+
+          <div class="sc-l"><span id="sc-sub-label">Subtotal</span><b id="sc-sub">R$ 0,00</b></div>
+          <div class="sc-l desc" id="sc-desc-l" style="display:none"><span id="sc-desc-label">Desconto</span><b id="sc-desc">− R$ 0,00</b></div>
+          <div class="sc-l"><span>Frete</span><b id="sc-frete-valor" style="color:var(--lapis)">a combinar</b></div>
+          <div class="sc-total"><span>Total</span><strong id="sc-total">R$ 0,00</strong></div>
+
+          <button type="button" class="sc-btn principal" id="sc-finalizar" style="margin-top:16px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+            Finalizar pedido
+          </button>
+          <a href={`${base}colecoes`} class="sc-btn sc-btn-linha">Adicionar mais peças</a>
+          <p class="sc-nota">Pagamento e envio combinados no WhatsApp da Vivi. Nenhuma cobrança é feita nesta etapa.</p>
         </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-16 text-center text-sm">
-        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Vivi Correa" class="h-12 mx-auto mb-6 brightness-0 invert opacity-50" />
-        
-        <div class="flex justify-center gap-6 mb-8 text-gray-400">
-            <a href={`${import.meta.env.BASE_URL}quem-somos`} class="hover:text-white transition">Quem Somos</a>
-            <a href={`${import.meta.env.BASE_URL}ajuda`} class="hover:text-white transition">Ajuda & Políticas</a>
-            <a href="https://wa.me/5571991064721" target="_blank" class="hover:text-white transition">Fale Conosco</a>
+        <div class="sc-selos">
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l7 4v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-4z"/></svg>Peças autorais, feitas à mão uma a uma</div>
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>Embalagem para presente inclusa</div>
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1018 0 9 9 0 00-18 0zM12 7v5l3 2"/></svg>Troca combinada em até 7 dias</div>
         </div>
-        
-        <p class="text-gray-500 text-xs">&copy; 2026 Vivi Correa. Todos os direitos reservados.</p>
-        <p class="mt-2 text-xs text-gray-600">Desenvolvido por KA Agência Criativa</p>
-    </footer>
+      </aside>
+    </div>
+  </div>
 
-    <script>
-        let carrinho = JSON.parse(localStorage.getItem('carrinho_vivi')) || [];
+  <section class="sc-vazio" id="sc-vazio">
+    <div class="sc-vazio-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></div>
+    <h2>Sua sacola está vazia</h2>
+    <p>A sacola é guardada em cada aparelho. Escolha uma peça abaixo e ela aparece aqui na hora.</p>
+    <a href={`${base}colecoes`} class="sc-btn">Explorar coleções</a>
+    <div class="sc-secao-cab" style="margin-top:26px"><i></i><h2 style="font-size:21px">Destaques da Vivi</h2></div>
+    <div class="sc-reco" id="sc-reco"></div>
+  </section>
+</main>
 
-        function renderizarCarrinho() {
-            const listaVazia = document.getElementById('carrinho-vazio');
-            const listaCarrinho = document.getElementById('lista-carrinho');
-            const containerItens = document.getElementById('itens');
+<div class="sc-bar" id="sc-bar">
+  <div class="sc-bar-in">
+    <div class="sc-bar-v"><small>Total</small><strong id="sc-total-m">R$ 0,00</strong></div>
+    <button type="button" class="sc-btn" id="sc-finalizar-m">Finalizar</button>
+  </div>
+</div>
 
-            if (carrinho.length === 0) {
-                listaVazia.classList.remove('hidden');
-                listaCarrinho.classList.add('hidden');
-                return;
-            }
+<div class="sc-gaveta-scrim" id="sc-gaveta-scrim" hidden></div>
+<aside class="sc-gaveta" id="sc-gaveta" aria-hidden="true" aria-label="Detalhe da peça">
+  <div class="sc-gaveta-top"><small>Detalhe da peça</small><button type="button" class="sc-gaveta-x" id="sc-gaveta-x" aria-label="Fechar">×</button></div>
+  <div class="sc-gaveta-corpo" id="sc-gaveta-corpo"></div>
+  <div class="sc-gaveta-pe">
+    <button type="button" class="sc-btn" id="sc-gaveta-add">Adicionar mais uma</button>
+    <button type="button" class="sc-btn sc-btn-linha" id="sc-gaveta-salvar" style="margin-top:0">Guardar para depois</button>
+  </div>
+</aside>
 
-            listaVazia.classList.add('hidden');
-            listaCarrinho.classList.remove('hidden');
-            containerItens.innerHTML = '';
-            let total = 0;
+<div class="sc-toast" id="sc-toast" role="status" aria-live="polite">
+  <p id="sc-toast-txt">Pronto.</p>
+  <button type="button" id="sc-toast-acao" style="display:none">Desfazer</button>
+</div>
 
-            carrinho.forEach((item, index) => {
-                total += item.preco * item.quantidade;
-                
-                containerItens.innerHTML += `
-                    <div class="flex items-center gap-4 py-4 border-b border-gray-50">
-                        <img src="${item.imagem}" class="w-20 h-20 object-cover rounded">
-                        <div class="flex-1">
-                            <h3 class="font-semibold text-gray-900">${item.nome}</h3>
-                            <p class="text-sm text-gray-500">Quantidade: ${item.quantidade}</p>
-                            <p class="text-brand font-medium">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.preco)}</p>
-                        </div>
-                        <button onclick="removerItem(${index})" class="text-red-400 hover:text-red-600 p-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </div>
-                `;
-            });
+<footer class="sc-foot">
+  <p class="m">Vivi Corrêa · Joias Autorais</p>
+  <p>&copy; 2026 Vivi Corrêa. Todos os direitos reservados.</p>
+  <p style="font-size:11px">Desenvolvido por KA Agência Criativa</p>
+</footer>
+</div>
 
-            document.getElementById('total-carrinho').innerText = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total);
+<script>
+  import { createClient } from '@supabase/supabase-js';
+  const supabase = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
+  const BASE = import.meta.env.BASE_URL;
+  const K = { cart:'carrinho_vivi', save:'desejos_vivi', sel:'selecao_vivi', cup:'cupom_vivi', cep:'cep_vivi', ord:'ordem_vivi' };
+  const $ = id => document.getElementById(id);
+  const brl = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+  const soD = v => String(v||'').replace(/\D/g,'');
+  const mCEP = v => { v = soD(v).slice(0,8); return v.length>5 ? v.slice(0,5)+'-'+v.slice(5) : v; };
+  const slug = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  const ler = (k, fb) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? fb; } catch(e){ return fb; } };
+  const gravar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+
+  function imgsDe(bruto, fallback){
+    let a = [];
+    if (typeof bruto === 'string' && bruto.trim()){
+      try { const j = JSON.parse(bruto); a = Array.isArray(j) ? j.filter(Boolean) : [bruto]; } catch(e){ a = [bruto]; }
+    } else if (Array.isArray(bruto)) a = bruto.filter(Boolean);
+    return a.length ? a : [fallback];
+  }
+  const minimo = i => ({ id:i.id, nome:i.nome, preco:i.preco, imagem:i.imagem, quantidade:i.quantidade });
+
+  let itens = [], salvos = [], sel = new Set(), busca = '', ordem = 'manual', cupom = null, freteCfg = null, cepInfo = null, gavetaId = null, arrasteIdx = null, desfazer = null, toastT = null, hidratado = false;
+
+  function carregar(){
+    const bruto = ler(K.cart, []);
+    itens = (Array.isArray(bruto)?bruto:[]).filter(i=>i&&i.nome).map(i=>({
+      id:i.id, nome:i.nome, preco:parseFloat(i.preco)||0, imagem:i.imagem||'', quantidade:Math.max(1,parseInt(i.quantidade)||1),
+      categoria:i.categoria||'', colecao:i.colecao||'', descricao:i.descricao||'', numeracao:i.numeracao||'',
+      estoque:(i.estoque===null||i.estoque===undefined)?null:parseInt(i.estoque), imagens:imgsDe(i.imagem, `${BASE}logo.png`)
+    }));
+    const sv = ler(K.save, []);
+    salvos = (Array.isArray(sv)?sv:[]).filter(i=>i&&i.nome).map(i=>({ ...i, preco:parseFloat(i.preco)||0, quantidade:Math.max(1,parseInt(i.quantidade)||1) }));
+    const s = ler(K.sel, null);
+    sel = new Set(Array.isArray(s) && s.length ? s.map(String) : itens.map(i=>String(i.id)));
+    itens.forEach(i=>{ if(!sel.has(String(i.id))) sel.delete(String(i.id)); });
+    if (!Array.isArray(s)) sel = new Set(itens.map(i=>String(i.id)));
+    cupom = ler(K.cup, null);
+    ordem = ler(K.ord, 'manual');
+    const c = ler(K.cep, null);
+    if (c && c.cep){ cepInfo = c; $('sc-cep').value = mCEP(c.cep); }
+    if ($('sc-ordem')) $('sc-ordem').value = ordem;
+  }
+  function persistir(){
+    gravar(K.cart, itens.map(minimo));
+    gravar(K.save, salvos.map(minimo));
+    gravar(K.sel, Array.from(sel));
+    gravar(K.cup, cupom);
+    gravar(K.ord, ordem);
+    gravar(K.cep, cepInfo);
+    window.dispatchEvent(new CustomEvent('carrinho-atualizado'));
+  }
+
+  async function hidratar(){
+    if (!itens.length){ hidratado = true; render(); return; }
+    try{
+      const ids = itens.map(i=>i.id).filter(v=>v!==undefined&&v!==null);
+      const { data, error } = await supabase.from('produtos').select('*').in('id', ids);
+      if (!error && Array.isArray(data)){
+        itens = itens.map(i=>{
+          const p = data.find(d=>String(d.id)===String(i.id));
+          if (!p) return { ...i, indisponivel:true };
+          const imgs = imgsDe(p.imagem_url, `${BASE}logo.png`);
+          return { ...i, nome:p.nome, preco:(p.preco_centavos||0)/100, imagem:imgs[0], imagens:imgs,
+            categoria:p.categoria||'', colecao:p.colecao||'', descricao:p.descricao||'', numeracao:p.numeracao||'',
+            estoque:(p.estoque===null||p.estoque===undefined)?null:parseInt(p.estoque), indisponivel:false };
+        });
+      }
+    }catch(e){}
+    hidratado = true; persistir(); render();
+  }
+  async function configuracoes(){
+    try{
+      const { data } = await supabase.from('configuracoes').select('chave,valor').in('chave',['frete_gratis_acima','cupom_desconto']);
+      (data||[]).forEach(r=>{
+        if (r.chave === 'frete_gratis_acima'){
+          const n = parseFloat(String(r.valor).replace(/[^\d.,]/g,'').replace(',','.'));
+          if (!isNaN(n) && n > 0) freteCfg = n > 1000 ? n/100 : n;
         }
-
-        function removerItem(index) {
-            carrinho.splice(index, 1);
-            localStorage.setItem('carrinho_vivi', JSON.stringify(carrinho));
-            renderizarCarrinho();
-            
-            // Atualiza o contador do header
-            const totalItens = carrinho.reduce((acc, item) => acc + item.quantidade, 0);
-            const contador = document.getElementById('contador-carrinho');
-            if (totalItens > 0) {
-                contador.innerText = totalItens;
-                contador.classList.remove('hidden');
-            } else {
-                contador.classList.add('hidden');
-            }
+        if (r.chave === 'cupom_desconto'){
+          try { const j = JSON.parse(r.valor); if (j && j.codigo) cupomCfg = j; } catch(e){}
         }
+      });
+    }catch(e){}
+    render();
+  }
+  let cupomCfg = null;
 
-        renderizarCarrinho();
-    </script>
+  const maxDe = i => (i.estoque === null || isNaN(i.estoque)) ? 99 : Math.max(0, i.estoque);
+  const visiveis = () => {
+    let l = itens.slice();
+    if (busca.trim()){ const q = busca.trim().toLowerCase(); l = l.filter(i => (i.nome+' '+i.colecao+' '+i.categoria).toLowerCase().includes(q)); }
+    if (ordem==='nome') l.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+    if (ordem==='caro') l.sort((a,b)=>(b.preco*b.quantidade)-(a.preco*a.quantidade));
+    if (ordem==='barato') l.sort((a,b)=>(a.preco*a.quantidade)-(b.preco*b.quantidade));
+    if (ordem==='qtd') l.sort((a,b)=>b.quantidade-a.quantidade);
+    return l;
+  };
+  const escolhidos = () => itens.filter(i=>sel.has(String(i.id)));
+  const subtotal = () => escolhidos().reduce((s,i)=>s+i.preco*i.quantidade,0);
+  const desconto = () => cupom ? subtotal() * (cupom.pct/100) : 0;
+  const total = () => Math.max(0, subtotal() - desconto());
+  const freteGratis = () => freteCfg !== null && total() >= freteCfg;
+
+  function render(){
+    const vazio = itens.length === 0;
+    $('sc-cheio').style.display = vazio ? 'none' : '';
+    $('sc-bar').style.display = vazio ? 'none' : '';
+    $('sc-vazio').classList.toggle('on', vazio);
+    if (vazio){ carregouReco(); totais(); medir(); return; }
+
+    const l = visiveis();
+    const lista = $('sc-lista');
+    if (!l.length){
+      lista.innerHTML = `<div class="sc-painel" style="padding:26px;text-align:center;animation:none;opacity:1;transform:none">
+        <p style="margin:0;font-size:13.5px;color:var(--tinta2)">Nenhuma peça corresponde a “${busca}”.</p></div>`;
+    } else {
+      lista.innerHTML = l.map(i=>{
+        const idx = itens.indexOf(i);
+        const mx = maxDe(i);
+        const sem = i.indisponivel || mx === 0;
+        const pouco = !sem && mx > 0 && mx <= 2;
+        const on = sel.has(String(i.id));
+        return `<article class="sc-item ${sem?'fora':''}" data-id="${i.id}" data-idx="${idx}" draggable="true">
+          <span class="sc-grip" data-grip aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></span>
+          <label class="sc-chk" style="padding:2px 0"><input type="checkbox" data-sel="${i.id}" ${on?'checked':''} ${sem?'disabled':''} aria-label="Selecionar ${i.nome}"><span class="sc-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></span></label>
+          <div class="sc-foto" data-abrir="${i.id}" role="button" tabindex="0" aria-label="Ver ${i.nome}">
+            <img src="${i.imagens[0]}" alt="${i.nome}" onerror="this.src='${BASE}logo.png'">
+            <span class="sc-foto-zoom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M21 21l-5-5m2-5a7 7 0 11-14 0 7 7 0 0114 0zM11 8v6M8 11h6"/></svg></span>
+          </div>
+          <div class="sc-corpo">
+            ${i.colecao||i.categoria?`<span class="sc-eyebrow">${i.colecao||i.categoria}</span>`:''}
+            <h3 class="sc-nome" data-abrir="${i.id}">${i.nome}</h3>
+            <span class="sc-unit">${brl(i.preco)} por peça</span>
+            <div class="sc-tags">
+              ${sem?`<span class="sc-tag terra">Indisponível</span>`:''}
+              ${pouco?`<span class="sc-tag ambar">Últimas ${mx}</span>`:''}
+              ${i.numeracao?`<span class="sc-tag lapis">Nº ${i.numeracao}</span>`:''}
+              ${i.imagens.length>1?`<span class="sc-tag ouro">${i.imagens.length} fotos</span>`:''}
+            </div>
+            <div class="sc-rodape">
+              <div class="sc-qtd">
+                <button type="button" data-q="menos" data-id="${i.id}" ${i.quantidade<=1||sem?'disabled':''} aria-label="Diminuir">−</button>
+                <input type="number" min="1" max="${mx||99}" value="${i.quantidade}" data-qin="${i.id}" ${sem?'disabled':''} aria-label="Quantidade de ${i.nome}">
+                <button type="button" data-q="mais" data-id="${i.id}" ${sem||i.quantidade>=mx?'disabled':''} aria-label="Aumentar">+</button>
+              </div>
+              <strong class="sc-linha-total">${brl(i.preco*i.quantidade)}</strong>
+            </div>
+            <div class="sc-acoes">
+              <button type="button" class="sc-link info" data-abrir="${i.id}">Ver detalhes</button>
+              <button type="button" class="sc-link" data-salvar="${i.id}">Guardar para depois</button>
+              <button type="button" class="sc-link perigo" data-remover="${i.id}">Remover</button>
+            </div>
+          </div>
+        </article>`;
+      }).join('');
+    }
+
+    const sv = $('sc-secao-salvos');
+    if (salvos.length){
+      sv.style.display = '';
+      $('sc-salvos-n').textContent = salvos.length === 1 ? '1 peça' : `${salvos.length} peças`;
+      $('sc-salvos').innerHTML = salvos.map(i=>`<div class="sc-salvo">
+        <img src="${i.imagem||BASE+'logo.png'}" alt="${i.nome}" onerror="this.src='${BASE}logo.png'">
+        <div class="sc-salvo-c">
+          <p class="sc-salvo-n">${i.nome}</p>
+          <div class="sc-salvo-p">${brl(i.preco)}</div>
+          <div class="sc-salvo-a">
+            <button type="button" class="voltar" data-voltar="${i.id}">Voltar à sacola</button>
+            <button type="button" class="lixo" data-lixo="${i.id}" aria-label="Descartar">×</button>
+          </div>
+        </div></div>`).join('');
+      requestAnimationFrame(()=>sv.classList.add('vis'));
+    } else { sv.style.display = 'none'; sv.classList.remove('vis'); }
+
+    const n = escolhidos().length;
+    $('sc-lote').classList.toggle('on', n > 0 && n < itens.length);
+    $('sc-lote-n').textContent = n === 1 ? '1 peça selecionada' : `${n} peças selecionadas`;
+    $('sc-todos').checked = itens.length > 0 && n === itens.length;
+    $('sc-hero-txt').textContent = `${itens.reduce((s,i)=>s+i.quantidade,0)} peça(s) na sacola · ${n} selecionada(s) para o pedido.`;
+    $('sc-arraste-nota').style.display = ordem === 'manual' ? '' : 'none';
+    totais(); medir();
+  }
+
+  function totais(){
+    const s = subtotal(), d = desconto(), t = total();
+    $('sc-sub').textContent = brl(s);
+    $('sc-sub-label').textContent = `Subtotal · ${escolhidos().reduce((a,i)=>a+i.quantidade,0)} peça(s)`;
+    $('sc-desc-l').style.display = d > 0 ? '' : 'none';
+    $('sc-desc').textContent = '− ' + brl(d);
+    if (cupom){ $('sc-desc-label').textContent = `Cupom ${cupom.codigo} (−${cupom.pct}%)`; $('sc-cupom-ativo').classList.add('on'); $('sc-cupom-label').textContent = `${cupom.codigo} · −${cupom.pct}%`; $('sc-cupom-form').style.display='none'; }
+    else { $('sc-cupom-ativo').classList.remove('on'); $('sc-cupom-form').style.display=''; }
+    $('sc-total').textContent = brl(t);
+    $('sc-total-m').textContent = brl(t);
+    const fv = $('sc-frete-valor');
+    if (freteGratis()){ fv.textContent = 'grátis'; fv.style.color = 'var(--verdigris)'; }
+    else { fv.textContent = 'a combinar'; fv.style.color = 'var(--lapis)'; }
+    if (freteCfg !== null){
+      $('sc-frete-bar-wrap').style.display = '';
+      $('sc-frete-bar').style.width = Math.min(100, (t/freteCfg)*100) + '%';
+      $('sc-frete-titulo').textContent = freteGratis() ? 'Frete grátis conquistado' : `Faltam ${brl(freteCfg-t)} para frete grátis`;
+    }
+    if (cepInfo && cepInfo.cidade){
+      $('sc-frete-nota').innerHTML = `Entrega em <b>${cepInfo.cidade}/${cepInfo.uf}</b>${freteGratis()?' · frete grátis':' · valor combinado no WhatsApp'}.`;
+    }
+    const bloqueado = escolhidos().length === 0;
+    ['sc-finalizar','sc-finalizar-m'].forEach(id=>{ const b=$(id); if(b) b.disabled = bloqueado; });
+  }
+
+  function medir(){
+    const b = $('sc-bar');
+    const h = b && getComputedStyle(b).display !== 'none' ? b.offsetHeight : 0;
+    document.documentElement.style.setProperty('--buy-h', h+'px');
+  }
+
+  function toast(txt, acao, fn, tipo){
+    const t = $('sc-toast'), b = $('sc-toast-acao');
+    $('sc-toast-txt').textContent = txt;
+    t.classList.remove('err','ok'); if (tipo) t.classList.add(tipo);
+    if (acao){ b.style.display=''; b.textContent=acao; b.onclick=fn; } else b.style.display='none';
+    t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove('on'), 5200);
+  }
+
+  function remover(ids, msg){
+    const backup = ids.map(id=>({ item:itens.find(i=>String(i.id)===String(id)), pos:itens.findIndex(i=>String(i.id)===String(id)) })).filter(b=>b.item);
+    if (!backup.length) return;
+    ids.forEach(id=>{ const k = itens.findIndex(i=>String(i.id)===String(id)); if(k>-1) itens.splice(k,1); sel.delete(String(id)); });
+    persistir(); render();
+    toast(msg || (backup.length===1?'Peça removida da sacola.':`${backup.length} peças removidas.`), 'Desfazer', ()=>{
+      backup.sort((a,b)=>a.pos-b.pos).forEach(b=>{ itens.splice(Math.min(b.pos,itens.length),0,b.item); sel.add(String(b.item.id)); });
+      persistir(); render(); toast('Remoção desfeita.', null, null, 'ok');
+    });
+  }
+  function guardar(ids){
+    const movidos = [];
+    ids.forEach(id=>{
+      const k = itens.findIndex(i=>String(i.id)===String(id));
+      if (k<0) return;
+      const i = itens[k];
+      if (!salvos.some(s=>String(s.id)===String(i.id))) salvos.unshift(minimo(i));
+      movidos.push({ item:i, pos:k }); itens.splice(k,1); sel.delete(String(id));
+    });
+    if (!movidos.length) return;
+    persistir(); render();
+    toast(movidos.length===1?'Peça guardada para depois.':`${movidos.length} peças guardadas.`, 'Desfazer', ()=>{
+      movidos.sort((a,b)=>a.pos-b.pos).forEach(m=>{
+        itens.splice(Math.min(m.pos,itens.length),0,m.item); sel.add(String(m.item.id));
+        const k = salvos.findIndex(s=>String(s.id)===String(m.item.id)); if(k>-1) salvos.splice(k,1);
+      });
+      persistir(); render(); toast('De volta à sacola.', null, null, 'ok');
+    });
+  }
+  function voltar(id){
+    const k = salvos.findIndex(s=>String(s.id)===String(id)); if(k<0) return;
+    const i = salvos[k]; salvos.splice(k,1);
+    const ex = itens.find(x=>String(x.id)===String(i.id));
+    if (ex) ex.quantidade += 1; else itens.push({ ...i, imagens:imgsDe(i.imagem,`${BASE}logo.png`), estoque:null });
+    sel.add(String(i.id)); persistir(); render(); hidratar();
+    toast('Peça de volta à sacola.', null, null, 'ok');
+  }
+  function mudarQtd(id, delta, absoluto){
+    const i = itens.find(x=>String(x.id)===String(id)); if(!i) return;
+    const mx = maxDe(i);
+    let q = absoluto !== undefined ? absoluto : i.quantidade + delta;
+    q = Math.max(1, Math.min(mx || 99, parseInt(q)||1));
+    if (q === i.quantidade) return;
+    i.quantidade = q; persistir(); render();
+    if (absoluto === undefined && mx && q === mx) toast(`Limite de ${mx} peça(s) disponíveis desta joia.`, null, null, 'err');
+  }
+
+  function abrirGaveta(id){
+    const i = itens.find(x=>String(x.id)===String(id)) || salvos.find(x=>String(x.id)===String(id));
+    if (!i) return;
+    gavetaId = String(id);
+    const imgs = i.imagens && i.imagens.length ? i.imagens : imgsDe(i.imagem, `${BASE}logo.png`);
+    const nums = String(i.numeracao||'').split(/[,;]/).map(s=>s.trim()).filter(Boolean);
+    $('sc-gaveta-corpo').innerHTML = `
+      <img class="sc-gaveta-foto" id="sc-gaveta-foto" src="${imgs[0]}" alt="${i.nome}" onerror="this.src='${BASE}logo.png'">
+      ${imgs.length>1?`<div class="sc-gaveta-th">${imgs.map((u,k)=>`<button type="button" class="${k===0?'on':''}" data-gth="${k}"><img src="${u}" alt="Foto ${k+1}"></button>`).join('')}</div>`:''}
+      ${i.colecao||i.categoria?`<span class="sc-eyebrow">${i.colecao||i.categoria}</span>`:''}
+      <h3>${i.nome}</h3>
+      <div class="sc-gaveta-preco">${brl(i.preco)}</div>
+      ${nums.length?`<div class="sc-tags" style="margin-bottom:13px">${nums.map(n=>`<span class="sc-tag lapis">Nº ${n}</span>`).join('')}</div>`:''}
+      <div class="sc-gaveta-desc">${i.descricao || '<p>Joia artesanal exclusiva Vivi Corrêa. Cada peça é única e feita à mão com carinho.</p>'}</div>
+      <div style="margin-top:16px"><a href="${BASE}produto/${slug(i.nome)}" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze);text-decoration:underline;text-underline-offset:3px">Abrir página da peça</a></div>`;
+    $('sc-gaveta-corpo').querySelectorAll('[data-gth]').forEach(b=>b.addEventListener('click',()=>{
+      $('sc-gaveta-corpo').querySelectorAll('[data-gth]').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on'); $('sc-gaveta-foto').src = imgs[+b.dataset.gth];
+    }));
+    const naSacola = itens.some(x=>String(x.id)===String(id));
+    $('sc-gaveta-add').textContent = naSacola ? 'Adicionar mais uma' : 'Trazer para a sacola';
+    $('sc-gaveta-salvar').style.display = naSacola ? '' : 'none';
+    $('sc-gaveta-scrim').hidden = false;
+    requestAnimationFrame(()=>$('sc-gaveta-scrim').classList.add('on'));
+    $('sc-gaveta').classList.add('on'); $('sc-gaveta').setAttribute('aria-hidden','false');
+    document.body.style.overflow = 'hidden';
+  }
+  function fecharGaveta(){
+    $('sc-gaveta').classList.remove('on'); $('sc-gaveta').setAttribute('aria-hidden','true');
+    $('sc-gaveta-scrim').classList.remove('on'); document.body.style.overflow = '';
+    setTimeout(()=>{ $('sc-gaveta-scrim').hidden = true; }, 340); gavetaId = null;
+  }
+
+  let recoCarregado = false;
+  async function carregouReco(){
+    if (recoCarregado) return; recoCarregado = true;
+    const alvo = $('sc-reco');
+    alvo.innerHTML = Array.from({length:4}).map(()=>`<div class="sc-sk" style="grid-template-columns:1fr"><i class="a" style="aspect-ratio:1;height:auto"></i><div><i class="b"></i><i class="c"></i></div></div>`).join('');
+    try{
+      const { data } = await supabase.from('produtos').select('*').eq('destaque', true).limit(8);
+      const lista = (data||[]).filter(p=>p && p.nome);
+      if (!lista.length){ alvo.innerHTML = `<p style="grid-column:1/-1;font-size:12.5px;color:var(--tinta2)">Explore as coleções para escolher sua primeira peça.</p>`; return; }
+      alvo.innerHTML = lista.map(p=>{
+        const imgs = imgsDe(p.imagem_url, `${BASE}logo.png`);
+        const pr = (p.preco_centavos||0)/100;
+        return `<div class="sc-reco-c">
+          <img src="${imgs[0]}" alt="${p.nome}" loading="lazy" onerror="this.src='${BASE}logo.png'">
+          <div class="sc-reco-b"><p class="sc-reco-n">${p.nome}</p><span class="sc-reco-p">${brl(pr)}</span>
+          <button type="button" data-reco="${p.id}" data-nome="${p.nome}" data-preco="${pr}" data-img="${imgs[0]}">Adicionar</button></div></div>`;
+      }).join('');
+      alvo.querySelectorAll('[data-reco]').forEach(b=>b.addEventListener('click',()=>{
+        const id = b.dataset.reco;
+        const ex = itens.find(i=>String(i.id)===String(id));
+        if (ex) ex.quantidade += 1;
+        else itens.push({ id, nome:b.dataset.nome, preco:parseFloat(b.dataset.preco)||0, imagem:b.dataset.img, quantidade:1, imagens:[b.dataset.img], estoque:null });
+        sel.add(String(id)); persistir(); render(); hidratar();
+        toast('Peça adicionada à sacola.', null, null, 'ok');
+      }));
+    }catch(e){ alvo.innerHTML = `<p style="grid-column:1/-1;font-size:12.5px;color:var(--tinta2)">Explore as coleções para escolher sua primeira peça.</p>`; }
+  }
+
+  async function aplicarCupom(){
+    const cod = $('sc-cupom').value.trim().toUpperCase();
+    const msg = $('sc-cupom-msg');
+    if (!cod){ msg.className='sc-cupom-msg on err'; msg.textContent='Digite o código do cupom.'; return; }
+    msg.className='sc-cupom-msg on'; msg.style.color='var(--lapis)'; msg.textContent='Verificando cupom…';
+    let pct = null;
+    if (cupomCfg && String(cupomCfg.codigo).toUpperCase() === cod) pct = parseFloat(cupomCfg.pct)||10;
+    if (pct === null){
+      try{
+        const { data } = await supabase.from('newsletter').select('cupom_utilizado').ilike('cupom_utilizado', cod).limit(1);
+        if (data && data.length) pct = 10;
+      }catch(e){}
+    }
+    if (pct === null){ msg.className='sc-cupom-msg on err'; msg.textContent='Cupom não encontrado. Use o código que recebeu ao assinar a newsletter.'; return; }
+    cupom = { codigo:cod, pct }; persistir(); $('sc-cupom').value=''; msg.className='sc-cupom-msg'; msg.textContent='';
+    render(); toast(`Cupom ${cod} aplicado: −${pct}%.`, null, null, 'ok');
+  }
+
+  async function calcularCep(){
+    const cep = soD($('sc-cep').value);
+    const nota = $('sc-frete-nota');
+    if (cep.length !== 8){ nota.innerHTML = 'Digite os 8 dígitos do CEP.'; return; }
+    nota.innerHTML = 'Consultando CEP…';
+    const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort(), 6000);
+    try{
+      const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal:ctrl.signal });
+      const d = await r.json();
+      if (d.erro){ nota.innerHTML = 'CEP não encontrado. Confira os números.'; cepInfo = null; }
+      else { cepInfo = { cep, cidade:d.localidade||'', uf:d.uf||'' }; persistir(); toast(`Entrega em ${cepInfo.cidade}/${cepInfo.uf}.`, null, null, 'ok'); }
+    }catch(e){ nota.innerHTML = 'Não foi possível consultar o CEP agora. O envio será combinado no WhatsApp.'; }
+    finally{ clearTimeout(t); totais(); }
+  }
+
+  function finalizar(){
+    const l = escolhidos();
+    if (!l.length){ toast('Selecione ao menos uma peça para finalizar.', null, null, 'err'); return; }
+    gravar(K.sel, l.map(i=>String(i.id)));
+    window.location.href = `${BASE}checkout`;
+  }
+
+  $('sc-lista').addEventListener('click', e=>{
+    const q = e.target.closest('[data-q]');
+    if (q){ mudarQtd(q.dataset.id, q.dataset.q==='mais'?1:-1); return; }
+    const r = e.target.closest('[data-remover]'); if (r){ remover([r.dataset.remover]); return; }
+    const s = e.target.closest('[data-salvar]'); if (s){ guardar([s.dataset.salvar]); return; }
+    const a = e.target.closest('[data-abrir]'); if (a){ abrirGaveta(a.dataset.abrir); return; }
+  });
+  $('sc-lista').addEventListener('change', e=>{
+    const c = e.target.closest('[data-sel]');
+    if (c){ const id = String(c.dataset.sel); if (c.checked) sel.add(id); else sel.delete(id); persistir(); render(); return; }
+    const n = e.target.closest('[data-qin]');
+    if (n) mudarQtd(n.dataset.qin, 0, n.value);
+  });
+  $('sc-lista').addEventListener('keydown', e=>{
+    const a = e.target.closest('[data-abrir]');
+    if (a && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); abrirGaveta(a.dataset.abrir); }
+  });
+  $('sc-lista').addEventListener('dragstart', e=>{
+    const it = e.target.closest('.sc-item'); if (!it || ordem!=='manual'){ e.preventDefault(); return; }
+    arrasteIdx = +it.dataset.idx; it.classList.add('arrastando');
+    try { e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain', String(arrasteIdx)); } catch(err){}
+  });
+  $('sc-lista').addEventListener('dragover', e=>{
+    if (arrasteIdx===null) return; e.preventDefault();
+    const it = e.target.closest('.sc-item'); if (!it) return;
+    $('sc-lista').querySelectorAll('.sc-item').forEach(x=>x.classList.remove('alvo'));
+    if (+it.dataset.idx !== arrasteIdx) it.classList.add('alvo');
+  });
+  $('sc-lista').addEventListener('drop', e=>{
+    if (arrasteIdx===null) return; e.preventDefault();
+    const it = e.target.closest('.sc-item');
+    if (it){ const alvo = +it.dataset.idx; if (alvo !== arrasteIdx){ const [m] = itens.splice(arrasteIdx,1); itens.splice(alvo,0,m); persistir(); render(); toast('Ordem das peças atualizada.', null, null, 'ok'); } }
+    arrasteIdx = null;
+  });
+  $('sc-lista').addEventListener('dragend', ()=>{ arrasteIdx=null; $('sc-lista').querySelectorAll('.sc-item').forEach(x=>x.classList.remove('arrastando','alvo')); });
+
+  $('sc-salvos').addEventListener('click', e=>{
+    const v = e.target.closest('[data-voltar]'); if (v){ voltar(v.dataset.voltar); return; }
+    const l = e.target.closest('[data-lixo]');
+    if (l){ const id=l.dataset.lixo; const k=salvos.findIndex(s=>String(s.id)===String(id)); if(k<0) return;
+      const bkp={item:salvos[k],pos:k}; salvos.splice(k,1); persistir(); render();
+      toast('Peça descartada dos guardados.', 'Desfazer', ()=>{ salvos.splice(Math.min(bkp.pos,salvos.length),0,bkp.item); persistir(); render(); });
+    }
+  });
+  $('sc-todos').addEventListener('change', e=>{ sel = e.target.checked ? new Set(itens.map(i=>String(i.id))) : new Set(); persistir(); render(); });
+  $('sc-busca').addEventListener('input', e=>{ busca = e.target.value; render(); });
+  $('sc-ordem').addEventListener('change', e=>{ ordem = e.target.value; persistir(); render(); });
+  $('sc-lote-remover').addEventListener('click', ()=>remover(Array.from(sel)));
+  $('sc-lote-salvar').addEventListener('click', ()=>guardar(Array.from(sel)));
+  $('sc-lote-limpar').addEventListener('click', ()=>{ sel=new Set(); persistir(); render(); });
+  $('sc-cupom-btn').addEventListener('click', aplicarCupom);
+  $('sc-cupom').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); aplicarCupom(); } });
+  $('sc-cupom-x').addEventListener('click', ()=>{ cupom=null; persistir(); render(); toast('Cupom removido.'); });
+  $('sc-cep-btn').addEventListener('click', calcularCep);
+  $('sc-cep').addEventListener('input', e=>{ e.target.value = mCEP(e.target.value); });
+  $('sc-cep').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); calcularCep(); } });
+  $('sc-finalizar').addEventListener('click', finalizar);
+  $('sc-finalizar-m').addEventListener('click', finalizar);
+  $('sc-gaveta-x').addEventListener('click', fecharGaveta);
+  $('sc-gaveta-scrim').addEventListener('click', fecharGaveta);
+  $('sc-gaveta-add').addEventListener('click', ()=>{
+    if (!gavetaId) return;
+    if (!itens.some(i=>String(i.id)===gavetaId)) voltar(gavetaId);
+    else mudarQtd(gavetaId, 1);
+    toast('Peça adicionada à sacola.', null, null, 'ok'); fecharGaveta();
+  });
+  $('sc-gaveta-salvar').addEventListener('click', ()=>{ if(gavetaId){ guardar([gavetaId]); fecharGaveta(); } });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') fecharGaveta(); });
+  window.addEventListener('resize', medir);
+  window.addEventListener('orientationchange', ()=>setTimeout(medir,260));
+  window.addEventListener('load', medir);
+  window.addEventListener('storage', e=>{ if (e.key===K.cart){ carregar(); render(); } });
+  if (window.ResizeObserver) new ResizeObserver(medir).observe($('sc-bar'));
+  if (window.IntersectionObserver){
+    const io = new IntersectionObserver(es=>es.forEach(x=>{ if(x.isIntersecting){ x.target.classList.add('vis'); io.unobserve(x.target); } }), { threshold:.12 });
+    document.querySelectorAll('.sc-secao').forEach(s=>io.observe(s));
+  } else document.querySelectorAll('.sc-secao').forEach(s=>s.classList.add('vis'));
+
+  carregar(); render(); medir(); hidratar(); configuracoes();
+</script>
 </body>
 </html>

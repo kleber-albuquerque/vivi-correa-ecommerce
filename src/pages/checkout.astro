@@ -7,353 +7,324 @@ const base = import.meta.env.BASE_URL;
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Finalizar Pedido — Vivi Corrêa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#faf9f7; --surface:#ffffff; --surface-2:#f4f0e8; --line:#e7dfd1;
-    --ink:#2b241c; --ink-2:#6b5f4f; --ink-3:#9a8d7a;
-    --gold:#8B7355; --gold-2:#a68a64; --gold-3:#c9b189; --gold-soft:#f1e9db;
-    --ok:#3f7d54; --ok-soft:#eaf3ec; --warn:#b07d2b; --warn-soft:#faf1de;
-    --danger:#b3402f; --danger-soft:#f9ebe8; --info:#4a6b8a;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
-  h1,h2,h3,.display{font-family:'Cormorant Garamond',serif}
-  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.05;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E")}
-  body::after{content:"";position:fixed;top:-220px;right:-180px;width:640px;height:640px;z-index:0;pointer-events:none;
-    background:radial-gradient(circle,rgba(201,177,137,.28),rgba(201,177,137,0) 65%)}
-  .pagina{position:relative;z-index:1}
-  .wrap{max-width:1120px;margin:0 auto;padding:32px 16px 64px}
-  @media(min-width:768px){.wrap{padding:56px 24px 96px}}
-
-  .topo{margin-bottom:28px}
-  .voltar{display:inline-flex;align-items:center;gap:6px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);text-decoration:none;transition:color .25s}
-  .voltar:hover{color:var(--gold)}
-  .topo h1{font-size:clamp(30px,5vw,44px);font-weight:500;margin:10px 0 6px;line-height:1.1}
-  .topo p{margin:0;color:var(--ink-2);font-size:13px}
-
-  .progresso{display:flex;align-items:center;gap:10px;margin:22px 0 30px}
-  .progresso .trilho{flex:1;height:3px;background:var(--line);border-radius:99px;overflow:hidden}
-  .progresso .barra{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--gold-3));transition:width .5s cubic-bezier(.22,1,.36,1)}
-  .progresso .rotulo{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
-
-  .grid{display:grid;grid-template-columns:1fr;gap:24px}
-  @media(min-width:960px){.grid{grid-template-columns:1.55fr 1fr;gap:36px;align-items:start}}
-
-  .etapa{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 20px;margin-bottom:18px;
-    box-shadow:0 1px 2px rgba(43,36,28,.04);opacity:0;transform:translateY(18px);animation:sobe .7s cubic-bezier(.22,1,.36,1) forwards}
-  .etapa:nth-child(2){animation-delay:.08s}.etapa:nth-child(3){animation-delay:.16s}
-  @keyframes sobe{to{opacity:1;transform:none}}
-  .etapa-cab{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-  .selo{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;
-    font-size:13px;font-weight:600;color:var(--gold);background:var(--gold-soft);border:1px solid var(--gold-3);transition:all .35s}
-  .etapa.completa .selo{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#fff;border-color:transparent}
-  .etapa-cab h2{font-size:22px;font-weight:600;margin:0}
-  .etapa-cab .sub{font-size:11px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;margin-left:auto}
-
-  .linha{display:grid;grid-template-columns:1fr;gap:14px}
-  @media(min-width:560px){.linha.duos{grid-template-columns:1fr 1fr}.linha.cep{grid-template-columns:170px 1fr}.linha.cidade{grid-template-columns:1fr 96px}}
-
-  .campo{position:relative}
-  .campo label{display:block;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);margin-bottom:6px}
-  .campo label .opc{font-weight:400;color:var(--ink-3);text-transform:none;letter-spacing:0}
-  .campo input,.campo select{width:100%;padding:13px 40px 13px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);
-    font-family:inherit;font-size:14px;color:var(--ink);transition:border-color .25s,background .25s,box-shadow .25s;appearance:none}
-  .campo select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238B7355' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
-  .campo input::placeholder{color:var(--ink-3)}
-  .campo input:focus,.campo select:focus{outline:none;border-color:var(--gold);background:#fff;box-shadow:0 0 0 4px rgba(139,115,85,.12)}
-  .campo .estado{position:absolute;right:13px;top:35px;width:18px;height:18px;opacity:0;transform:scale(.6);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
-  .campo.ok input,.campo.ok select{border-color:var(--ok)}
-  .campo.ok .estado.ok{opacity:1;transform:scale(1)}
-  .campo.invalido input,.campo.invalido select{border-color:var(--danger);background:var(--danger-soft)}
-  .campo.invalido .estado.ruim{opacity:1;transform:scale(1)}
-  .erro{display:none;font-size:11.5px;color:var(--danger);margin:6px 2px 0;animation:sobe .3s both}
-  .campo.invalido .erro{display:block}
-  .cep-status{font-size:11.5px;margin:6px 2px 0;color:var(--info);display:none}
-  .cep-status.visivel{display:block}
-  .cep-status.aviso{color:var(--warn)}
-  .spinner{display:inline-block;width:11px;height:11px;border:2px solid var(--gold-3);border-top-color:var(--gold);border-radius:50%;animation:gira .7s linear infinite;vertical-align:-1px;margin-right:5px}
-  @keyframes gira{to{transform:rotate(360deg)}}
-  @keyframes treme{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-  .treme{animation:treme .3s}
-
-  /* ── Resumo ── */
-  .resumo{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 10px 34px rgba(43,36,28,.07);
-    opacity:0;transform:translateY(18px);animation:sobe .7s .2s cubic-bezier(.22,1,.36,1) forwards}
-  @media(min-width:960px){.resumo{position:sticky;top:196px}}
-  .resumo-cab{padding:18px 20px;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-2) 60%,var(--gold-3) 130%);color:#fff}
-  .resumo-cab h2{margin:0;font-size:23px;font-weight:600}
-  .resumo-cab span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
-  .itens{max-height:320px;overflow-y:auto;padding:6px 20px;scrollbar-width:thin;scrollbar-color:var(--gold-3) var(--surface-2)}
-  .itens::-webkit-scrollbar{width:8px}
-  .itens::-webkit-scrollbar-track{background:var(--surface-2)}
-  .itens::-webkit-scrollbar-thumb{background:var(--gold-3);border-radius:99px}
-  .itens::-webkit-scrollbar-thumb:hover{background:var(--gold)}
-  .item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--surface-2)}
-  .item:last-child{border-bottom:none}
-  .item img{width:62px;height:62px;object-fit:cover;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);flex-shrink:0}
-  .item-info{flex:1;min-width:0}
-  .item-nome{font-size:13px;font-weight:500;margin:0 0 3px;line-height:1.35}
-  .item-preco{font-size:12px;color:var(--gold);font-weight:600}
-  .item-acoes{display:flex;align-items:center;gap:8px;margin-top:8px}
-  .qtd{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-  .qtd button{width:26px;height:26px;border:none;background:var(--bg);color:var(--ink-2);font-size:14px;cursor:pointer;transition:all .2s}
-  .qtd button:hover{background:var(--gold-soft);color:var(--gold)}
-  .qtd span{width:30px;text-align:center;font-size:12.5px;font-weight:600}
-  .remover{border:none;background:none;color:var(--ink-3);font-size:11px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;transition:color .2s}
-  .remover:hover{color:var(--danger)}
-  .totais{padding:16px 20px;border-top:1px solid var(--line);background:var(--bg)}
-  .totais .l{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2);margin-bottom:8px}
-  .totais .total{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
-  .totais .total strong{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:var(--ink)}
-  .totais .total span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
-  .selos{display:flex;flex-direction:column;gap:8px;padding:14px 20px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-2)}
-  .selos div{display:flex;gap:8px;align-items:center}
-  .selos svg{flex-shrink:0;color:var(--gold)}
-
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px 24px;border:none;border-radius:12px;cursor:pointer;
-    font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#fff;
-    background:linear-gradient(135deg,var(--gold) 0%,var(--gold-2) 70%,var(--gold-3) 140%);background-size:160% 160%;
-    box-shadow:0 8px 22px rgba(139,115,85,.32);transition:all .35s;position:relative;overflow:hidden}
-  .btn:hover{background-position:100% 0;transform:translateY(-2px);box-shadow:0 12px 28px rgba(139,115,85,.4)}
-  .btn:active{transform:translateY(0)}
-  .btn:disabled{opacity:.65;cursor:wait;transform:none}
-  .btn .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:gira .7s linear infinite;display:none}
-  .btn.carregando .spin{display:block}
-  .btn-escuro{background:var(--ink);box-shadow:0 8px 22px rgba(43,36,28,.25)}
-  .btn-escuro:hover{background:#000}
-  .btn-linha{background:none;color:var(--ink-2);border:1.5px solid var(--line);box-shadow:none}
-  .btn-linha:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-soft)}
-  .area-enviar{margin-top:6px}
-  .area-enviar .nota{font-size:11.5px;color:var(--ink-3);text-align:center;margin:12px 0 0;line-height:1.6}
-  @media(max-width:959px){.area-enviar .btn{display:none}}
-
-  /* ── Barra fixa mobile ── */
-  .barra-mobile{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:40;display:none;
-    padding:12px 16px;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
-  .barra-mobile .dentro{display:flex;align-items:center;gap:14px;max-width:1120px;margin:0 auto}
-  .barra-mobile .valor{flex-shrink:0}
-  .barra-mobile .valor small{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
-  .barra-mobile .valor strong{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600}
-  .barra-mobile .btn{padding:14px 16px;font-size:11.5px}
-  @media(max-width:959px){.barra-mobile{display:block}.wrap{padding-bottom:150px}}
-
-  /* ── Vazio / Sucesso ── */
-  .painel{display:none;text-align:center;max-width:520px;margin:40px auto;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:48px 28px;box-shadow:0 14px 44px rgba(43,36,28,.08)}
-  .painel.visivel{display:block;animation:sobe .6s both}
-  .painel h2{font-size:32px;font-weight:500;margin:18px 0 8px}
-  .painel p{color:var(--ink-2);font-size:13.5px;line-height:1.7;margin:0 0 24px}
-  .anel-check{width:84px;height:84px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    background:linear-gradient(135deg,var(--gold),var(--gold-3));color:#fff;position:relative;animation:pop .6s cubic-bezier(.34,1.56,.64,1) both}
-  .anel-check::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:1.5px solid var(--gold-3);animation:pulso 1.8s ease-out infinite}
-  @keyframes pop{from{transform:scale(.4);opacity:0}}
-  @keyframes pulso{from{transform:scale(.85);opacity:.9}to{transform:scale(1.25);opacity:0}}
-  .pedido-num{display:inline-block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);background:var(--gold-soft);border:1px solid var(--gold-3);border-radius:99px;padding:7px 18px;margin-bottom:20px}
-  .painel .btn{margin-bottom:12px}
-
-  /* ── Toast ── */
-  .toast{position:fixed;top:96px;right:20px;z-index:1200;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 40px);
-    background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:12px;padding:14px 18px;
-    box-shadow:0 14px 40px rgba(43,36,28,.18);transform:translateX(420px);transition:transform .45s cubic-bezier(.22,1,.36,1)}
-  .toast.visivel{transform:none}
-  .toast.erro{border-left-color:var(--danger)}
-  .toast p{margin:0;font-size:13px;font-weight:500}
-  .toast button{border:none;background:var(--gold-soft);color:var(--gold);font-family:inherit;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;border-radius:8px;padding:8px 12px;cursor:pointer;transition:all .2s}
-  .toast button:hover{background:var(--gold);color:#fff}
-  @media(max-width:767px){.toast{top:auto;right:16px;left:16px;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateY(220px)}.toast.visivel{transform:none}}
-
-  footer{position:relative;z-index:1;background:var(--surface);border-top:1px solid var(--line);padding:44px 16px;text-align:center;font-size:12.5px;color:var(--ink-3)}
-  footer .marca{font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--ink-2);margin-bottom:6px}
-  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+<style is:global>
+  .ck{--alabastro:#faf9f7;--perola:#fff;--areia:#f4f0e8;--linho:#e7dfd1;--espresso:#241d16;--tinta2:#6b5f4f;--tinta3:#9a8d7a;
+      --bronze:#8B7355;--bronze2:#a68a64;--ouro:#c9a227;--ouroclaro:#e6d3ae;--cobre:#b06a4f;--lapis:#3d6b96;
+      --verdigris:#2f7d4f;--ambar:#c8871b;--terracota:#c0392b;--bronze-s:#f3ebdd;
+      margin:0;background:var(--alabastro);color:var(--espresso);font-family:'Montserrat',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
+  .ck *{box-sizing:border-box}
+  .ck h1,.ck h2,.ck h3{font-family:'Cormorant Garamond',serif}
+  .ck-rel{position:relative;z-index:1}
+  .ck::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E")}
+  .ck::after{content:"";position:fixed;top:-230px;right:-190px;width:660px;height:660px;z-index:0;pointer-events:none;
+    background:radial-gradient(circle,rgba(201,162,39,.34),rgba(176,106,79,.14) 42%,rgba(61,107,150,.08) 62%,transparent 74%)}
+  .ck-wrap{max-width:1140px;margin:0 auto;padding:20px 16px 40px}
+  .ck-voltar{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--tinta2);text-decoration:none;transition:color .25s}
+  .ck-voltar:hover{color:var(--bronze)}
+  .ck-topo h1{margin:10px 0 6px;font-size:clamp(29px,7.4vw,44px);font-weight:500;line-height:1.06}
+  .ck-topo p{margin:0;font-size:13px;color:var(--tinta2);line-height:1.65;max-width:58ch}
+  .ck-prog{display:flex;align-items:center;gap:11px;margin:20px 0 22px}
+  .ck-prog .trilho{flex:1;height:5px;border-radius:99px;background:var(--linho);overflow:hidden}
+  .ck-prog .barra{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--lapis),var(--bronze) 42%,var(--ouro) 78%,var(--verdigris));transition:width .55s cubic-bezier(.22,1,.36,1)}
+  .ck-prog .rotulo{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta3);white-space:nowrap}
+  .ck-grid{display:grid;grid-template-columns:1fr;gap:20px;align-items:start}
+  .ck-grid>*{min-width:0}
+  @media(max-width:899px){.ck-resumo{order:-1}}
+  .ck-etapa{background:var(--perola);border:1px solid var(--linho);border-radius:15px;padding:20px 16px;margin-bottom:15px;box-shadow:0 2px 10px rgba(36,29,22,.05);
+    opacity:0;transform:translateY(16px);animation:ckSobe .7s cubic-bezier(.22,1,.36,1) forwards}
+  .ck-etapa:nth-of-type(2){animation-delay:.07s}.ck-etapa:nth-of-type(3){animation-delay:.14s}
+  .ck-cab{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+  .ck-selo{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12.5px;font-weight:600;
+    color:var(--bronze);background:var(--bronze-s);border:1px solid var(--ouroclaro);transition:all .35s}
+  .ck-etapa.completa .ck-selo{background:linear-gradient(135deg,#1b1610,var(--bronze) 48%,var(--ouro));color:#fff;border-color:transparent;box-shadow:0 4px 13px rgba(139,115,85,.34)}
+  .ck-cab h2{margin:0;font-size:22px;font-weight:600}
+  .ck-cab .sub{margin-left:auto;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--tinta3);text-align:right}
+  @media(max-width:400px){.ck-cab .sub{display:none}}
+  .ck-linha{display:grid;grid-template-columns:1fr;gap:13px}
+  .ck-linha+.ck-linha{margin-top:13px}
+  @media(min-width:540px){.ck-linha.duos{grid-template-columns:1fr 1fr}.ck-linha.cep{grid-template-columns:158px minmax(0,1fr)}.ck-linha.cidade{grid-template-columns:minmax(0,1fr) 88px}}
+  .ck-campo{position:relative;min-width:0}
+  .ck-campo label{display:block;font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta2);margin-bottom:6px}
+  .ck-campo label .opc{font-weight:400;color:var(--tinta3);text-transform:none;letter-spacing:0}
+  .ck-campo input,.ck-campo select{width:100%;padding:13px 38px 13px 13px;border:1.5px solid var(--linho);border-radius:10px;background:var(--alabastro);
+    font-family:inherit;font-size:16px;color:var(--espresso);appearance:none;transition:border-color .25s,background .25s,box-shadow .25s}
+  @media(min-width:540px){.ck-campo input,.ck-campo select{font-size:14px}}
+  .ck-campo select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238B7355' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
+  .ck-campo input::placeholder{color:var(--tinta3)}
+  .ck-campo input:focus,.ck-campo select:focus{outline:none;border-color:var(--bronze);background:#fff;box-shadow:0 0 0 4px rgba(139,115,85,.14)}
+  .ck-est{position:absolute;right:12px;top:34px;width:18px;height:18px;opacity:0;transform:scale(.6);transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+  .ck-campo.ok input,.ck-campo.ok select{border-color:var(--verdigris)}
+  .ck-campo.ok .ck-est.ok{opacity:1;transform:none}
+  .ck-campo.ruim input,.ck-campo.ruim select{border-color:var(--terracota);background:#fdf0ee}
+  .ck-campo.ruim .ck-est.ruim{opacity:1;transform:none}
+  .ck-erro{display:none;margin:6px 2px 0;font-size:11.5px;color:var(--terracota)}
+  .ck-campo.ruim .ck-erro{display:block;animation:ckSobe .25s both}
+  .ck-cepst{display:none;margin:6px 2px 0;font-size:11.5px;color:var(--lapis)}
+  .ck-cepst.on{display:block}
+  .ck-cepst.aviso{color:var(--ambar)}
+  .ck-cepst.bom{color:var(--verdigris)}
+  .ck-spin{display:inline-block;width:11px;height:11px;border:2px solid var(--ouroclaro);border-top-color:var(--bronze);border-radius:50%;animation:ckGira .7s linear infinite;vertical-align:-1px;margin-right:5px}
+  @keyframes ckGira{to{transform:rotate(360deg)}}
+  @keyframes ckTreme{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .ck-treme{animation:ckTreme .3s}
+  .ck-resumo{background:var(--perola);border:1px solid var(--linho);border-radius:15px;overflow:hidden;box-shadow:0 14px 38px rgba(36,29,22,.1);
+    opacity:0;transform:translateY(16px);animation:ckSobe .7s .16s cubic-bezier(.22,1,.36,1) forwards}
+  @media(min-width:900px){.ck-resumo{position:sticky;top:calc(var(--hdr-h) + 20px)}}
+  .ck-resumo-cab{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px;color:#fff;
+    background:linear-gradient(120deg,#1b1610,#3d3226 22%,var(--bronze) 62%,var(--ouro) 118%)}
+  .ck-resumo-cab small{display:block;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;opacity:.82;margin-bottom:3px}
+  .ck-resumo-cab h2{margin:0;font-size:22px;font-weight:600}
+  .ck-conta{flex-shrink:0;font-size:10.5px;font-weight:600;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.34);border-radius:99px;padding:5px 11px}
+  .ck-itens{max-height:264px;overflow-y:auto;padding:4px 18px;scrollbar-width:thin;scrollbar-color:var(--ouroclaro) var(--areia)}
+  @media(min-width:900px){.ck-itens{max-height:330px}}
+  .ck-itens::-webkit-scrollbar{width:9px}
+  .ck-itens::-webkit-scrollbar-track{background:var(--areia)}
+  .ck-itens::-webkit-scrollbar-thumb{background:var(--ouroclaro);border-radius:99px;border:2px solid var(--areia)}
+  .ck-itens::-webkit-scrollbar-thumb:hover{background:var(--bronze)}
+  .ck-item{display:flex;gap:11px;padding:13px 0;border-bottom:1px solid var(--areia)}
+  .ck-item:last-child{border-bottom:none}
+  .ck-item img{width:58px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--linho);background:var(--areia);flex-shrink:0;display:block}
+  .ck-item-i{flex:1;min-width:0}
+  .ck-item-n{margin:0 0 3px;font-size:12.5px;font-weight:500;line-height:1.35;overflow-wrap:anywhere}
+  .ck-item-p{font-size:12px;font-weight:600;color:var(--bronze)}
+  .ck-item-q{font-size:10.5px;color:var(--tinta3);margin-top:2px}
+  .ck-totais{padding:15px 18px;border-top:1px solid var(--linho);background:var(--alabastro)}
+  .ck-l{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;color:var(--tinta2);margin-bottom:8px}
+  .ck-l b{font-weight:600;color:var(--espresso)}
+  .ck-l.desc b{color:var(--verdigris)}
+  .ck-tt{display:flex;justify-content:space-between;align-items:baseline;margin-top:11px;padding-top:11px;border-top:1px dashed var(--linho)}
+  .ck-tt span{font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--tinta2)}
+  .ck-tt strong{font-family:'Cormorant Garamond',serif;font-size:31px;font-weight:600;line-height:1}
+  .ck-selos{display:grid;gap:8px;padding:13px 18px;border-top:1px solid var(--linho);font-size:11px;color:var(--tinta2)}
+  .ck-selos div{display:flex;align-items:center;gap:9px;line-height:1.4}
+  .ck-selos svg{width:15px;height:15px;flex-shrink:0;color:var(--bronze)}
+  .ck-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:16px 20px;border:none;border-radius:12px;cursor:pointer;text-decoration:none;
+    font-family:inherit;font-size:12.5px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#fff;
+    background:linear-gradient(120deg,#1b1610,#3d3226 18%,var(--bronze) 52%,var(--ouro) 92%,var(--ouroclaro) 130%);background-size:190% 180%;
+    box-shadow:0 10px 26px rgba(139,115,85,.36);transition:background-position .55s,transform .22s,box-shadow .3s}
+  .ck-btn:hover{background-position:100% 0;transform:translateY(-2px);box-shadow:0 15px 34px rgba(139,115,85,.46)}
+  .ck-btn:active{transform:translateY(0) scale(.99)}
+  .ck-btn:disabled{background:#ded6c8;color:#8a7f70;box-shadow:none;cursor:not-allowed;transform:none}
+  .ck-btn .sp{display:none;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:ckGira .7s linear infinite}
+  .ck-btn.load .sp{display:block}
+  .ck-btn-linha{background:none;color:var(--tinta2);border:1.5px solid var(--linho);box-shadow:none;margin-top:10px}
+  .ck-btn-linha:hover{border-color:var(--bronze);color:var(--bronze);background:var(--bronze-s);transform:none;box-shadow:none}
+  .ck-btn svg{width:16px;height:16px}
+  .ck-enviar{margin-top:4px}
+  .ck-enviar .nota{margin:12px 0 0;font-size:11px;color:var(--tinta3);text-align:center;line-height:1.65}
+  @media(max-width:899px){.ck-enviar .ck-btn{display:none}.ck-enviar .nota{margin-top:0}}
+  .ck-bar{position:fixed;left:0;right:0;bottom:var(--nav-h);z-index:45;display:none;padding:11px 14px calc(11px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid var(--linho);box-shadow:0 -6px 22px rgba(36,29,22,.1)}
+  .ck-bar-in{display:flex;align-items:center;gap:12px;max-width:1140px;margin:0 auto}
+  .ck-bar-v{flex-shrink:0}
+  .ck-bar-v small{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta3)}
+  .ck-bar-v strong{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;line-height:1.1}
+  .ck-bar .ck-btn{padding:14px;font-size:11px;letter-spacing:.1em}
+  @media(max-width:899px){.ck-bar{display:block}.ck{padding-bottom:calc(var(--nav-h) + var(--buy-h) + 18px)}}
+  .ck-painel{display:none;text-align:center;max-width:540px;margin:24px auto;background:var(--perola);border:1px solid var(--linho);border-radius:18px;padding:40px 22px;box-shadow:0 16px 44px rgba(36,29,22,.1)}
+  .ck-painel.on{display:block;animation:ckSobe .55s both}
+  .ck-painel h2{margin:16px 0 8px;font-size:31px;font-weight:500}
+  .ck-painel p{margin:0 0 20px;font-size:13.5px;color:var(--tinta2);line-height:1.7}
+  .ck-painel .ck-btn{margin-bottom:10px}
+  .ck-check{width:82px;height:82px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;position:relative;
+    background:linear-gradient(135deg,#1b1610,var(--bronze) 46%,var(--ouro) 88%,var(--ouroclaro));animation:ckPop .6s cubic-bezier(.34,1.56,.64,1) both}
+  .ck-check::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:1.5px solid var(--ouroclaro);animation:ckPulso 1.9s ease-out infinite}
+  @keyframes ckPop{from{transform:scale(.4);opacity:0}}
+  @keyframes ckPulso{from{transform:scale(.86);opacity:.9}to{transform:scale(1.26);opacity:0}}
+  .ck-num{display:inline-block;margin-bottom:16px;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--bronze);background:var(--bronze-s);border:1px solid var(--ouroclaro);border-radius:99px;padding:7px 17px}
+  .ck-vazio-ic{width:80px;height:80px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--areia),var(--ouroclaro));color:var(--bronze)}
+  .ck-vazio-ic svg{width:36px;height:36px}
+  .ck-toast{position:fixed;z-index:1400;left:14px;right:14px;bottom:calc(var(--nav-h) + var(--buy-h) + 14px);display:flex;align-items:center;gap:11px;
+    background:var(--perola);border:1px solid var(--linho);border-left:4px solid var(--bronze);border-radius:12px;padding:13px 15px;
+    box-shadow:0 16px 42px rgba(36,29,22,.24);transform:translateY(280px);transition:transform .45s cubic-bezier(.22,1,.36,1)}
+  .ck-toast.on{transform:none}
+  .ck-toast.err{border-left-color:var(--terracota)}
+  .ck-toast.ok{border-left-color:var(--verdigris)}
+  .ck-toast p{margin:0;font-size:12.5px;font-weight:500;line-height:1.4}
+  @media(min-width:900px){.ck-toast{left:auto;right:22px;bottom:auto;top:calc(var(--hdr-h) + 16px);width:340px;transform:translateX(430px)}.ck-toast.on{transform:none}}
+  .ck-foot{background:var(--perola);border-top:1px solid var(--linho);padding:34px 16px;text-align:center;font-size:12px;color:var(--tinta3)}
+  .ck-foot .m{margin:0 0 5px;font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--tinta2)}
+  .ck-foot p{margin:2px 0}
+  @keyframes ckSobe{to{opacity:1;transform:none}}
+  @media(min-width:900px){.ck-wrap{padding:38px 24px 84px}.ck-grid{grid-template-columns:minmax(0,1.52fr) minmax(0,1fr);gap:32px}.ck-etapa{padding:22px 20px}}
+  @media(prefers-reduced-motion:reduce){.ck *,.ck *::before,.ck *::after{animation:none!important;transition:none!important}.ck-etapa,.ck-resumo{opacity:1;transform:none}}
 </style>
 </head>
-<body>
-<div class="pagina">
+<body class="ck">
+<div class="ck-rel">
 <Header />
 
-<main class="wrap">
-  <div class="topo">
-    <a href={`${base}carrinho`} class="voltar">← Voltar ao carrinho</a>
+<main class="ck-wrap">
+  <div class="ck-topo">
+    <a href={`${base}carrinho`} class="ck-voltar">← Voltar à sacola</a>
     <h1>Finalizar seu pedido</h1>
-    <p>Preencha seus dados com calma. O pagamento e o envio são combinados diretamente com a Vivi pelo WhatsApp.</p>
-    <div class="progresso">
-      <span class="rotulo" id="progresso-rotulo">0 de 9 campos</span>
-      <div class="trilho"><div class="barra" id="progresso-barra"></div></div>
-    </div>
+    <p>Preencha com calma. O pedido é registrado e o WhatsApp da Vivi abre com todos os detalhes — pagamento e envio combinados por lá.</p>
+    <div class="ck-prog"><span class="rotulo" id="ck-rotulo">0 de 10 campos</span><div class="trilho"><div class="barra" id="ck-barra"></div></div></div>
   </div>
 
-  <div class="grid" id="conteudo-checkout">
-    <form id="form-checkout" novalidate>
-      <!-- ETAPA 1 -->
-      <section class="etapa" id="etapa-1">
-        <div class="etapa-cab"><span class="selo">1</span><h2>Identificação</h2><span class="sub">Quem recebe a joia</span></div>
-        <div class="linha duos">
-          <div class="campo" data-campo="nome">
+  <div class="ck-grid" id="ck-conteudo">
+    <form id="ck-form" novalidate>
+      <section class="ck-etapa" id="ck-etapa-1">
+        <div class="ck-cab"><span class="ck-selo">1</span><h2>Identificação</h2><span class="sub">Quem recebe a joia</span></div>
+        <div class="ck-linha duos">
+          <div class="ck-campo" data-campo="nome">
             <label for="nome">Nome completo</label>
-            <input id="nome" name="nome" type="text" autocomplete="name" placeholder="Como no seu documento">
-            <svg class="estado ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#3f7d54"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <svg class="estado ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#b3402f"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <p class="erro">Digite seu nome e sobrenome.</p>
+            <input id="nome" type="text" autocomplete="name" placeholder="Como no seu documento">
+            <svg class="ck-est ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#2f7d4f"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="ck-est ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#c0392b"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <p class="ck-erro">Digite nome e sobrenome.</p>
           </div>
-          <div class="campo" data-campo="cpf">
+          <div class="ck-campo" data-campo="cpf">
             <label for="cpf">CPF</label>
-            <input id="cpf" name="cpf" type="text" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="000.000.000-00">
-            <svg class="estado ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#3f7d54"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <svg class="estado ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#b3402f"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <p class="erro">CPF inválido. Confira os números.</p>
+            <input id="cpf" type="text" inputmode="numeric" maxlength="14" autocomplete="off" placeholder="000.000.000-00">
+            <svg class="ck-est ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#2f7d4f"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="ck-est ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#c0392b"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <p class="ck-erro">CPF inválido. Confira os números.</p>
           </div>
         </div>
       </section>
 
-      <!-- ETAPA 2 -->
-      <section class="etapa" id="etapa-2">
-        <div class="etapa-cab"><span class="selo">2</span><h2>Contato</h2><span class="sub">Para falarmos com você</span></div>
-        <div class="linha duos">
-          <div class="campo" data-campo="email">
+      <section class="ck-etapa" id="ck-etapa-2">
+        <div class="ck-cab"><span class="ck-selo">2</span><h2>Contato</h2><span class="sub">Para falarmos com você</span></div>
+        <div class="ck-linha duos">
+          <div class="ck-campo" data-campo="email">
             <label for="email">E-mail</label>
-            <input id="email" name="email" type="email" autocomplete="email" placeholder="voce@email.com">
-            <svg class="estado ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#3f7d54"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <svg class="estado ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#b3402f"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <p class="erro">Digite um e-mail válido.</p>
+            <input id="email" type="email" autocomplete="email" placeholder="voce@email.com">
+            <svg class="ck-est ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#2f7d4f"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="ck-est ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#c0392b"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <p class="ck-erro">Digite um e-mail válido.</p>
           </div>
-          <div class="campo" data-campo="telefone">
+          <div class="ck-campo" data-campo="telefone">
             <label for="telefone">WhatsApp / Telefone</label>
-            <input id="telefone" name="telefone" type="tel" inputmode="numeric" maxlength="15" autocomplete="tel" placeholder="(71) 99999-9999">
-            <svg class="estado ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#3f7d54"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <svg class="estado ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#b3402f"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <p class="erro">Digite o DDD + número.</p>
+            <input id="telefone" type="tel" inputmode="numeric" maxlength="15" autocomplete="tel" placeholder="(71) 99999-9999">
+            <svg class="ck-est ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#2f7d4f"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="ck-est ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#c0392b"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <p class="ck-erro">Digite DDD + número.</p>
           </div>
         </div>
       </section>
 
-      <!-- ETAPA 3 -->
-      <section class="etapa" id="etapa-3">
-        <div class="etapa-cab"><span class="selo">3</span><h2>Entrega</h2><span class="sub">Onde a joia chega</span></div>
-        <div class="linha cep">
-          <div class="campo" data-campo="cep">
+      <section class="ck-etapa" id="ck-etapa-3">
+        <div class="ck-cab"><span class="ck-selo">3</span><h2>Entrega</h2><span class="sub">Onde a joia chega</span></div>
+        <div class="ck-linha cep">
+          <div class="ck-campo" data-campo="cep">
             <label for="cep">CEP</label>
-            <input id="cep" name="cep" type="text" inputmode="numeric" maxlength="9" autocomplete="postal-code" placeholder="00000-000">
-            <svg class="estado ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#3f7d54"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <svg class="estado ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#b3402f"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <p class="erro">CEP incompleto.</p>
-            <p class="cep-status" id="cep-status"></p>
+            <input id="cep" type="text" inputmode="numeric" maxlength="9" autocomplete="postal-code" placeholder="00000-000">
+            <svg class="ck-est ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#2f7d4f"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="ck-est ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#c0392b"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <p class="ck-erro">CEP incompleto.</p>
+            <p class="ck-cepst" id="ck-cepst"></p>
           </div>
-          <div class="campo" data-campo="rua">
+          <div class="ck-campo" data-campo="rua">
             <label for="rua">Rua / Avenida</label>
-            <input id="rua" name="rua" type="text" autocomplete="address-line1" placeholder="Preenchido pelo CEP">
-            <svg class="estado ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#3f7d54"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <svg class="estado ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#b3402f"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <p class="erro">Informe a rua.</p>
+            <input id="rua" type="text" autocomplete="address-line1" placeholder="Preenchida pelo CEP">
+            <svg class="ck-est ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#2f7d4f"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="ck-est ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#c0392b"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <p class="ck-erro">Informe a rua.</p>
           </div>
         </div>
-        <div class="linha duos" style="margin-top:14px">
-          <div class="campo" data-campo="numero">
+        <div class="ck-linha duos">
+          <div class="ck-campo" data-campo="numero">
             <label for="numero">Número</label>
-            <input id="numero" name="numero" type="text" inputmode="numeric" autocomplete="address-line2" placeholder="123 ou S/N">
-            <svg class="estado ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#3f7d54"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <svg class="estado ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#b3402f"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <p class="erro">Informe o número.</p>
+            <input id="numero" type="text" autocomplete="address-line2" placeholder="123 ou S/N">
+            <svg class="ck-est ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#2f7d4f"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="ck-est ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#c0392b"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <p class="ck-erro">Informe o número.</p>
           </div>
-          <div class="campo">
+          <div class="ck-campo">
             <label for="complemento">Complemento <span class="opc">(opcional)</span></label>
-            <input id="complemento" name="complemento" type="text" placeholder="Apto, bloco, referência">
+            <input id="complemento" type="text" placeholder="Apto, bloco, referência">
           </div>
         </div>
-        <div class="linha duos" style="margin-top:14px">
-          <div class="campo" data-campo="bairro">
+        <div class="ck-linha duos">
+          <div class="ck-campo" data-campo="bairro">
             <label for="bairro">Bairro</label>
-            <input id="bairro" name="bairro" type="text" placeholder="Preenchido pelo CEP">
-            <svg class="estado ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#3f7d54"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <svg class="estado ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#b3402f"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <p class="erro">Informe o bairro.</p>
+            <input id="bairro" type="text" placeholder="Preenchido pelo CEP">
+            <svg class="ck-est ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#2f7d4f"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="ck-est ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#c0392b"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <p class="ck-erro">Informe o bairro.</p>
           </div>
-          <div class="linha cidade">
-            <div class="campo" data-campo="cidade">
+          <div class="ck-linha cidade">
+            <div class="ck-campo" data-campo="cidade">
               <label for="cidade">Cidade</label>
-              <input id="cidade" name="cidade" type="text" autocomplete="address-level2" placeholder="Preenchida pelo CEP">
-              <svg class="estado ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#3f7d54"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <svg class="estado ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#b3402f"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-              <p class="erro">Informe a cidade.</p>
+              <input id="cidade" type="text" autocomplete="address-level2" placeholder="Pelo CEP">
+              <svg class="ck-est ok" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#2f7d4f"/><path d="M6 10.3l2.6 2.6L14 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg class="ck-est ruim" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#c0392b"/><path d="M10 5.5v5.5M10 14.2v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <p class="ck-erro">Informe a cidade.</p>
             </div>
-            <div class="campo" data-campo="uf">
+            <div class="ck-campo" data-campo="uf">
               <label for="uf">UF</label>
-              <select id="uf" name="uf" autocomplete="address-level1">
-                <option value="">—</option>
-                <option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option>
+              <select id="uf" autocomplete="address-level1">
+                <option value="">—</option><option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option>
               </select>
-              <p class="erro">UF.</p>
+              <p class="ck-erro">UF.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <div class="area-enviar">
-        <button type="submit" class="btn" id="btn-finalizar"><span class="spin"></span><span class="txt">Finalizar no WhatsApp</span></button>
-        <p class="nota">Ao finalizar, seu pedido é registrado e o WhatsApp da Vivi abre com todos os detalhes prontos para envio. 🔒 Seus dados são usados apenas para este pedido.</p>
+      <div class="ck-enviar">
+        <button type="submit" class="ck-btn" id="ck-enviar"><span class="sp"></span><span class="txt">Finalizar no WhatsApp</span></button>
+        <p class="nota">Seus dados são usados apenas para este pedido. Nenhuma cobrança é feita nesta etapa.</p>
       </div>
     </form>
 
-    <!-- RESUMO -->
-    <aside class="resumo" id="resumo">
-      <div class="resumo-cab"><span>Sua sacola</span><h2>Resumo do pedido</h2></div>
-      <div class="itens" id="lista-itens"></div>
-      <div class="totais">
-        <div class="l"><span>Subtotal</span><span id="subtotal">R$ 0,00</span></div>
-        <div class="l"><span>Frete</span><span style="color:var(--gold);font-weight:600">a combinar</span></div>
-        <div class="total"><span>Total</span><strong id="total">R$ 0,00</strong></div>
+    <aside class="ck-resumo">
+      <div class="ck-resumo-cab"><div><small>Sua sacola</small><h2>Resumo do pedido</h2></div><span class="ck-conta" id="ck-conta">0 peças</span></div>
+      <div class="ck-itens" id="ck-itens"></div>
+      <div class="ck-totais">
+        <div class="ck-l"><span id="ck-sub-l">Subtotal</span><b id="ck-sub">R$ 0,00</b></div>
+        <div class="ck-l desc" id="ck-desc-l" style="display:none"><span id="ck-desc-l-txt">Cupom</span><b id="ck-desc">− R$ 0,00</b></div>
+        <div class="ck-l"><span>Frete</span><b id="ck-frete" style="color:var(--lapis)">a combinar</b></div>
+        <div class="ck-tt"><span>Total</span><strong id="ck-total">R$ 0,00</strong></div>
       </div>
-      <div class="selos">
-        <div><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l7 4v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-4z"/></svg>Joia artesanal, feita à mão pela Vivi</div>
-        <div><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.38 8.38 0 01-8.5 8.5 8.5 8.5 0 01-3.8-.9L3 21l1.9-5.7a8.5 8.5 0 1116.1-3.8z"/></svg>Pagamento e envio combinados no WhatsApp</div>
-        <div><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>Embalagem para presente inclusa</div>
+      <div class="ck-selos">
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l7 4v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-4z"/></svg>Joia artesanal, feita à mão pela Vivi</div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.38 8.38 0 01-8.5 8.5 8.5 8.5 0 01-3.8-.9L3 21l1.9-5.7a8.5 8.5 0 1116.1-3.8z"/></svg>Pagamento e envio combinados no WhatsApp</div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>Embalagem para presente inclusa</div>
       </div>
     </aside>
   </div>
 
-  <!-- SACOLA VAZIA -->
-  <section class="painel" id="painel-vazio">
-    <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#c9b189" stroke-width="1.2" style="margin:0 auto"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-    <h2>Sua sacola está vazia</h2>
-    <p>As joias da Vivi estão esperando por você. Explore as coleções e escolha a peça que conta a sua história.</p>
-    <a href={`${base}colecoes`} class="btn" style="text-decoration:none">Explorar coleções</a>
+  <section class="ck-painel" id="ck-vazio">
+    <div class="ck-vazio-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></div>
+    <h2>Nenhuma peça selecionada</h2>
+    <p>Volte à sacola e marque as peças que deseja incluir neste pedido.</p>
+    <a href={`${base}carrinho`} class="ck-btn">Ir para a sacola</a>
+    <a href={`${base}colecoes`} class="ck-btn ck-btn-linha">Explorar coleções</a>
   </section>
 
-  <!-- SUCESSO -->
-  <section class="painel" id="painel-sucesso">
-    <div class="anel-check"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></div>
+  <section class="ck-painel" id="ck-sucesso">
+    <div class="ck-check"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></div>
     <h2>Pedido registrado!</h2>
-    <span class="pedido-num" id="pedido-num">Pedido #VC-000000</span>
-    <p id="sucesso-texto">Estamos abrindo o WhatsApp da Vivi com todos os detalhes do seu pedido. Se não abrir automaticamente, toque no botão abaixo.</p>
-    <a href="#" class="btn" id="btn-whatsapp" target="_self" style="text-decoration:none">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.5 0 1.47 1.07 2.9 1.22 3.1.15.2 2.1 3.2 5.1 4.49.71.31 1.27.49 1.7.63.72.23 1.37.2 1.88.12.58-.09 1.76-.72 2-1.42.25-.7.25-1.3.18-1.42-.08-.13-.28-.2-.58-.35zM12.05 21.8h-.01a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.9-9.88a9.82 9.82 0 016.99 2.9 9.82 9.82 0 012.9 7c0 5.45-4.44 9.88-9.9 9.88zm8.42-18.3A11.8 11.8 0 0012.05 0C5.5 0 .16 5.33.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.9 11.9 0 005.68 1.45h.01c6.55 0 11.89-5.33 11.89-11.89 0-3.18-1.24-6.16-3.47-8.41z"/></svg>
+    <span class="ck-num" id="ck-num">Pedido #VC-000000</span>
+    <p id="ck-sucesso-p">Estamos abrindo o WhatsApp da Vivi com todos os detalhes. Se não abrir sozinho, toque no botão abaixo.</p>
+    <a href="#" class="ck-btn" id="ck-wa">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.5 0 1.47 1.07 2.9 1.22 3.1.15.2 2.1 3.2 5.1 4.49.71.31 1.27.49 1.7.63.72.23 1.37.2 1.88.12.58-.09 1.76-.72 2-1.42.25-.7.25-1.3.18-1.42-.08-.13-.28-.2-.58-.35zM12.05 21.8h-.01a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.9-9.88a9.82 9.82 0 016.99 2.9 9.82 9.82 0 012.9 7c0 5.45-4.44 9.88-9.9 9.88zm8.42-18.3A11.8 11.8 0 0012.05 0C5.5 0 .16 5.33.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.9 11.9 0 005.68 1.45h.01c6.55 0 11.89-5.33 11.89-11.89 0-3.18-1.24-6.16-3.47-8.41z"/></svg>
       Abrir WhatsApp da Vivi
     </a>
-    <a href={`${base}`} class="btn btn-linha" style="text-decoration:none">Voltar à loja</a>
+    <a href={`${base}`} class="ck-btn ck-btn-linha">Voltar à loja</a>
   </section>
 </main>
 
-<!-- BARRA FIXA MOBILE -->
-<div class="barra-mobile" id="barra-mobile">
-  <div class="dentro">
-    <div class="valor"><small>Total</small><strong id="total-mobile">R$ 0,00</strong></div>
-    <button type="button" class="btn" id="btn-finalizar-mobile"><span class="spin"></span><span class="txt">Finalizar pedido</span></button>
+<div class="ck-bar" id="ck-bar">
+  <div class="ck-bar-in">
+    <div class="ck-bar-v"><small>Total</small><strong id="ck-total-m">R$ 0,00</strong></div>
+    <button type="button" class="ck-btn" id="ck-enviar-m"><span class="sp"></span><span class="txt">Finalizar pedido</span></button>
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast" role="status" aria-live="polite">
-  <p id="toast-texto">Item removido.</p>
-  <button type="button" id="toast-acao" style="display:none">Desfazer</button>
-</div>
+<div class="ck-toast" id="ck-toast" role="status" aria-live="polite"><p id="ck-toast-txt">Pronto.</p></div>
 
-<footer>
-  <p class="marca">Vivi Corrêa · Joias Autorais</p>
+<footer class="ck-foot">
+  <p class="m">Vivi Corrêa · Joias Autorais</p>
   <p>&copy; 2026 Vivi Corrêa. Todos os direitos reservados.</p>
-  <p style="font-size:11px;margin-top:4px">Desenvolvido por KA Agência Criativa</p>
+  <p style="font-size:11px">Desenvolvido por KA Agência Criativa</p>
 </footer>
 </div>
 
@@ -361,248 +332,168 @@ const base = import.meta.env.BASE_URL;
   import { createClient } from '@supabase/supabase-js';
   const supabase = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
   const BASE = import.meta.env.BASE_URL;
-  const WHATSAPP_FALLBACK = '5571991064721';
-  const CHAVE = 'carrinho_vivi';
-  const brl = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v);
+  const WA_FIXO = '5571991064721';
+  const K = { cart:'carrinho_vivi', sel:'selecao_vivi', cup:'cupom_vivi', cep:'cep_vivi' };
   const $ = id => document.getElementById(id);
+  const brl = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+  const soD = v => String(v||'').replace(/\D/g,'');
+  const ler = (k,fb) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? fb; } catch(e){ return fb; } };
+  const mCPF = v => { v=soD(v).slice(0,11); return v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d{1,2})$/,'.$1-$2'); };
+  const mTel = v => { v=soD(v).slice(0,11); if(v.length<=2) return v.length?'('+v:''; if(v.length<=6) return '('+v.slice(0,2)+') '+v.slice(2); if(v.length<=10) return '('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6); return '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7); };
+  const mCEP = v => { v=soD(v).slice(0,8); return v.length>5 ? v.slice(0,5)+'-'+v.slice(5) : v; };
+  function cpfOk(c){ c=soD(c); if(c.length!==11||/^(\d)\1{10}$/.test(c)) return false;
+    let s=0; for(let i=0;i<9;i++) s+=+c[i]*(10-i); let d=(s*10)%11; if(d===10)d=0; if(d!==+c[9]) return false;
+    s=0; for(let i=0;i<10;i++) s+=+c[i]*(11-i); d=(s*10)%11; if(d===10)d=0; return d===+c[10]; }
 
-  /* ── Estado ── */
-  let carrinho = [];
-  try { carrinho = JSON.parse(localStorage.getItem(CHAVE)) || []; } catch { carrinho = []; }
-  let removido = null, toastTimer = null, numeroVivi = '';
-
-  async function descobrirNumero(){
-    try{
-      const { data } = await supabase.from('configuracoes').select('valor').eq('chave','whatsapp').maybeSingle();
-      const v = String(data?.valor || '').replace(/\D/g,'');
-      if (v.length >= 10) numeroVivi = v;
-    }catch(e){}
-    if (!numeroVivi){
-      let f = String(WHATSAPP_FALLBACK || '').replace(/\D/g,'');
-      if (f.length === 10 || f.length === 11) f = '55' + f;
-      if (f.length >= 12) numeroVivi = f;
-    }
-  }
-  descobrirNumero();
-
-  /* ── Resumo / sacola ── */
-  function totalCarrinho(){ return carrinho.reduce((s,i)=>s + i.preco * i.quantidade, 0); }
-  function persistir(){
-    localStorage.setItem(CHAVE, JSON.stringify(carrinho));
-    window.dispatchEvent(new CustomEvent('carrinho-atualizado'));
-  }
-  function renderizar(){
-    const lista = $('lista-itens');
-    const vazio = carrinho.length === 0;
-    $('conteudo-checkout').style.display = vazio ? 'none' : '';
-    $('barra-mobile').style.display = vazio ? 'none' : '';
-    $('painel-vazio').classList.toggle('visivel', vazio);
-    if (vazio){ lista.innerHTML=''; atualizarTotais(); return; }
-    lista.innerHTML = carrinho.map((item, i) => `
-      <div class="item">
-        <img src="${item.imagem || ''}" alt="${item.nome}" onerror="this.style.visibility='hidden'">
-        <div class="item-info">
-          <p class="item-nome">${item.nome}</p>
-          <span class="item-preco">${brl(item.preco * item.quantidade)}</span>
-          <div class="item-acoes">
-            <div class="qtd">
-              <button type="button" data-acao="menos" data-i="${i}" aria-label="Diminuir">−</button>
-              <span>${item.quantidade}</span>
-              <button type="button" data-acao="mais" data-i="${i}" aria-label="Aumentar">+</button>
-            </div>
-            <button type="button" class="remover" data-acao="remover" data-i="${i}">remover</button>
-          </div>
-        </div>
-      </div>`).join('');
-    atualizarTotais();
-  }
-  function atualizarTotais(){
-    const t = brl(totalCarrinho());
-    $('subtotal').textContent = t; $('total').textContent = t; $('total-mobile').textContent = t;
-  }
-  $('lista-itens').addEventListener('click', e => {
-    const btn = e.target.closest('[data-acao]'); if (!btn) return;
-    const i = +btn.dataset.i, acao = btn.dataset.acao;
-    if (acao === 'mais') carrinho[i].quantidade++;
-    if (acao === 'menos' && carrinho[i].quantidade > 1) carrinho[i].quantidade--;
-    if (acao === 'remover'){
-      removido = { item: carrinho[i], pos: i };
-      carrinho.splice(i,1);
-      mostrarToast('Item removido da sacola.', 'Desfazer', () => {
-        carrinho.splice(removido.pos, 0, removido.item); removido = null; persistir(); renderizar(); esconderToast();
-      });
-    }
-    persistir(); renderizar();
-  });
-
-  /* ── Toast ── */
-  function mostrarToast(texto, acao, fn, erro=false){
-    const t = $('toast'), b = $('toast-acao');
-    $('toast-texto').textContent = texto;
-    t.classList.toggle('erro', erro);
-    if (acao){ b.style.display=''; b.textContent=acao; b.onclick=fn; } else b.style.display='none';
-    t.classList.add('visivel');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(esconderToast, 5000);
-  }
-  function esconderToast(){ $('toast').classList.remove('visivel'); }
-
-  /* ── Máscaras ── */
-  const soDigitos = v => v.replace(/\D/g,'');
-  function mascaraCPF(v){ v=soDigitos(v).slice(0,11); return v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d{1,2})$/,'.$1-$2'); }
-  function mascaraTel(v){ v=soDigitos(v).slice(0,11); if(v.length<=2) return v.length?`(${v}`:''; if(v.length<=6) return `(${v.slice(0,2)}) ${v.slice(2)}`; if(v.length<=10) return `(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`; return `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`; }
-  function mascaraCEP(v){ v=soDigitos(v).slice(0,8); return v.length>5 ? `${v.slice(0,5)}-${v.slice(5)}` : v; }
-  function cpfValido(c){
-    c = soDigitos(c);
-    if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
-    let s=0; for(let i=0;i<9;i++) s += +c[i]*(10-i);
-    let d1=(s*10)%11; if(d1===10) d1=0; if(d1!==+c[9]) return false;
-    s=0; for(let i=0;i<10;i++) s += +c[i]*(11-i);
-    let d2=(s*10)%11; if(d2===10) d2=0; return d2===+c[10];
-  }
-
-  /* ── Validação por campo ── */
-  const regras = {
-    nome:     v => v.trim().split(/\s+/).length >= 2 && v.trim().length >= 5,
-    cpf:      v => cpfValido(v),
-    email:    v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()),
-    telefone: v => { const d=soDigitos(v); return d.length===10 || d.length===11; },
-    cep:      v => soDigitos(v).length===8,
-    rua:      v => v.trim().length >= 3,
-    numero:   v => v.trim().length >= 1,
-    bairro:   v => v.trim().length >= 2,
-    cidade:   v => v.trim().length >= 2,
-    uf:       v => /^[A-Z]{2}$/.test(v)
-  };
-  const mascaras = { cpf: mascaraCPF, telefone: mascaraTel, cep: mascaraCEP };
+  let selecionados = [], cupom = null, numeroVivi = '', enviando = false, toastT = null, cepBuscado = '';
   const tocados = new Set();
   const etapas = { 1:['nome','cpf'], 2:['email','telefone'], 3:['cep','rua','numero','bairro','cidade','uf'] };
+  const regras = {
+    nome: v => v.trim().split(/\s+/).length>=2 && v.trim().length>=5,
+    cpf: cpfOk,
+    email: v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()),
+    telefone: v => { const d=soD(v); return d.length===10||d.length===11; },
+    cep: v => soD(v).length===8,
+    rua: v => v.trim().length>=3,
+    numero: v => v.trim().length>=1,
+    bairro: v => v.trim().length>=2,
+    cidade: v => v.trim().length>=2,
+    uf: v => /^[A-Z]{2}$/.test(v)
+  };
+  const mascaras = { cpf:mCPF, telefone:mTel, cep:mCEP };
 
-  function validarCampo(nome, forcar=false){
-    const wrap = document.querySelector(`[data-campo="${nome}"]`);
-    const input = $(nome);
-    if (!wrap || !input) return true;
-    const valido = regras[nome](input.value);
-    if (tocados.has(nome) || forcar){
-      wrap.classList.toggle('ok', valido);
-      wrap.classList.toggle('invalido', !valido);
-      input.setAttribute('aria-invalid', String(!valido));
-    }
-    return valido;
+  function medir(){ const b=$('ck-bar'); document.documentElement.style.setProperty('--buy-h', (b && getComputedStyle(b).display!=='none' ? b.offsetHeight : 0)+'px'); }
+  function toast(txt, tipo){ const t=$('ck-toast'); $('ck-toast-txt').textContent=txt; t.classList.remove('err','ok'); if(tipo)t.classList.add(tipo); t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),4600); }
+
+  function carregar(){
+    const bruto = ler(K.cart, []);
+    const todos = (Array.isArray(bruto)?bruto:[]).filter(i=>i&&i.nome).map(i=>({ ...i, preco:parseFloat(i.preco)||0, quantidade:Math.max(1,parseInt(i.quantidade)||1) }));
+    const s = ler(K.sel, null);
+    selecionados = Array.isArray(s) && s.length ? todos.filter(i=>s.map(String).includes(String(i.id))) : todos;
+    cupom = ler(K.cup, null);
+    const c = ler(K.cep, null);
+    if (c && c.cep){ $('cep').value = mCEP(c.cep); if (c.cidade) $('cidade').value = c.cidade; if (c.uf) $('uf').value = c.uf; }
   }
-  function atualizarProgresso(){
-    const nomes = Object.keys(regras);
-    const ok = nomes.filter(n => regras[n]($(n).value)).length;
-    $('progresso-barra').style.width = `${(ok/nomes.length)*100}%`;
-    $('progresso-rotulo').textContent = ok === nomes.length ? 'Tudo pronto ✓' : `${ok} de ${nomes.length} campos`;
-    for (const [num, campos] of Object.entries(etapas)){
-      const completa = campos.every(c => regras[c]($(c).value));
-      const el = $(`etapa-${num}`);
-      el.classList.toggle('completa', completa);
-      el.querySelector('.selo').textContent = completa ? '✓' : num;
+  const subtotal = () => selecionados.reduce((s,i)=>s+i.preco*i.quantidade,0);
+  const desconto = () => cupom ? subtotal()*(cupom.pct/100) : 0;
+  const total = () => Math.max(0, subtotal()-desconto());
+
+  function resumo(){
+    const vazio = selecionados.length===0;
+    $('ck-conteudo').style.display = vazio ? 'none' : '';
+    $('ck-bar').style.display = vazio ? 'none' : '';
+    $('ck-vazio').classList.toggle('on', vazio);
+    $('ck-itens').innerHTML = selecionados.map(i=>`<div class="ck-item">
+      <img src="${i.imagem||BASE+'logo.png'}" alt="${i.nome}" onerror="this.src='${BASE}logo.png'">
+      <div class="ck-item-i"><p class="ck-item-n">${i.nome}</p><span class="ck-item-p">${brl(i.preco*i.quantidade)}</span>
+      <div class="ck-item-q">${i.quantidade} × ${brl(i.preco)}</div></div></div>`).join('');
+    const n = selecionados.reduce((s,i)=>s+i.quantidade,0);
+    $('ck-conta').textContent = n===1?'1 peça':`${n} peças`;
+    $('ck-sub-l').textContent = `Subtotal · ${n} peça(s)`;
+    $('ck-sub').textContent = brl(subtotal());
+    $('ck-desc-l').style.display = desconto()>0 ? '' : 'none';
+    if (cupom){ $('ck-desc-l-txt').textContent = `Cupom ${cupom.codigo} (−${cupom.pct}%)`; $('ck-desc').textContent = '− '+brl(desconto()); }
+    $('ck-total').textContent = brl(total());
+    $('ck-total-m').textContent = brl(total());
+    medir();
+  }
+
+  function validar(n, forcar){
+    const w = document.querySelector(`[data-campo="${n}"]`), el = $(n);
+    if (!w||!el) return true;
+    const ok = regras[n](el.value);
+    if (tocados.has(n)||forcar){ w.classList.toggle('ok',ok); w.classList.toggle('ruim',!ok); el.setAttribute('aria-invalid',String(!ok)); }
+    return ok;
+  }
+  function progresso(){
+    const ns = Object.keys(regras), ok = ns.filter(n=>regras[n]($(n).value)).length;
+    $('ck-barra').style.width = (ok/ns.length*100)+'%';
+    $('ck-rotulo').textContent = ok===ns.length ? 'Tudo pronto ✓' : `${ok} de ${ns.length} campos`;
+    for (const [k,cs] of Object.entries(etapas)){
+      const el = $(`ck-etapa-${k}`); if(!el) continue;
+      const c = cs.every(x=>regras[x]($(x).value));
+      el.classList.toggle('completa',c); el.querySelector('.ck-selo').textContent = c?'✓':k;
     }
   }
-  Object.keys(regras).forEach(nome => {
-    const input = $(nome); if (!input) return;
-    input.addEventListener('input', () => {
-      if (mascaras[nome]) input.value = mascaras[nome](input.value);
-      if (tocados.has(nome)) validarCampo(nome);
-      atualizarProgresso();
-      if (nome === 'cep' && soDigitos(input.value).length === 8) buscarCEP();
-    });
-    input.addEventListener('blur', () => { tocados.add(nome); validarCampo(nome); atualizarProgresso(); });
-    if (input.tagName === 'SELECT') input.addEventListener('change', () => { tocados.add(nome); validarCampo(nome); atualizarProgresso(); });
+  Object.keys(regras).forEach(n=>{
+    const el = $(n); if(!el) return;
+    el.addEventListener('input', ()=>{ if(mascaras[n]) el.value=mascaras[n](el.value); if(tocados.has(n)) validar(n); progresso(); if(n==='cep'&&soD(el.value).length===8) buscarCEP(); });
+    el.addEventListener('blur', ()=>{ tocados.add(n); validar(n); progresso(); });
+    if (el.tagName==='SELECT') el.addEventListener('change', ()=>{ tocados.add(n); validar(n); progresso(); });
   });
 
-  /* ── ViaCEP ── */
-  let cepBuscado = '';
   async function buscarCEP(){
-    const cep = soDigitos($('cep').value);
-    if (cep.length !== 8 || cep === cepBuscado) return;
+    const cep = soD($('cep').value);
+    if (cep.length!==8 || cep===cepBuscado) return;
     cepBuscado = cep;
-    const st = $('cep-status');
-    st.className = 'cep-status visivel';
-    st.innerHTML = '<span class="spinner"></span>Buscando endereço…';
-    const ctrl = new AbortController();
-    const t = setTimeout(()=>ctrl.abort(), 6000);
+    const st = $('ck-cepst'); st.className='ck-cepst on'; st.innerHTML='<span class="ck-spin"></span>Buscando endereço…';
+    const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort(),6000);
     try{
-      const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { signal: ctrl.signal });
+      const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`,{signal:ctrl.signal});
       const d = await r.json();
-      if (d.erro){
-        st.className = 'cep-status visivel aviso';
-        st.textContent = 'CEP não encontrado — preencha o endereço manualmente.';
-      } else {
-        if (d.logradouro) $('rua').value = d.logradouro;
-        if (d.bairro) $('bairro').value = d.bairro;
-        if (d.localidade) $('cidade').value = d.localidade;
-        if (d.uf) $('uf').value = d.uf;
-        ['rua','bairro','cidade','uf'].forEach(n => { tocados.add(n); validarCampo(n); });
-        st.className = 'cep-status visivel';
-        st.style.color = 'var(--ok)';
-        st.textContent = '✓ Endereço encontrado';
+      if (d.erro){ st.className='ck-cepst on aviso'; st.textContent='CEP não encontrado — preencha manualmente.'; }
+      else{
+        if (d.logradouro) $('rua').value=d.logradouro;
+        if (d.bairro) $('bairro').value=d.bairro;
+        if (d.localidade) $('cidade').value=d.localidade;
+        if (d.uf) $('uf').value=d.uf;
+        ['rua','bairro','cidade','uf'].forEach(x=>{ tocados.add(x); validar(x); });
+        st.className='ck-cepst on bom'; st.textContent='✓ Endereço encontrado';
+        try { localStorage.setItem(K.cep, JSON.stringify({ cep, cidade:d.localidade||'', uf:d.uf||'' })); } catch(e){}
         $('numero').focus();
       }
-    }catch(e){
-      st.className = 'cep-status visivel aviso';
-      st.textContent = 'Não foi possível consultar o CEP — preencha manualmente.';
-    }finally{ clearTimeout(t); atualizarProgresso(); }
+    }catch(e){ st.className='ck-cepst on aviso'; st.textContent='Sem consulta de CEP agora — preencha manualmente.'; }
+    finally{ clearTimeout(t); progresso(); }
   }
 
-  /* ── Salvar pedido (tolerante a variações de schema) ── */
-  async function salvarPedido(nucleo, enderecoStr, itensArr){
+  async function descobrirNumero(){
+    if (numeroVivi) return numeroVivi;
+    try{ const { data } = await supabase.from('configuracoes').select('valor').eq('chave','whatsapp').maybeSingle();
+      const v = soD(data?.valor); if (v.length>=12) numeroVivi=v; }catch(e){}
+    if (!numeroVivi){ let f=soD(WA_FIXO); if(f.length===10||f.length===11) f='55'+f; if(f.length>=12) numeroVivi=f; }
+    return numeroVivi;
+  }
+
+  async function salvarPedido(nucleo, end, itens){
+    const semData = { cliente_nome:nucleo.cliente_nome, cpf:nucleo.cpf, telefone:nucleo.telefone, email:nucleo.email, itens:nucleo.itens, total_centavos:nucleo.total_centavos, status:nucleo.status };
     const tentativas = [
-      { ...nucleo, endereco: enderecoStr },
-      { ...nucleo, endereco_completo: enderecoStr },
-      { ...nucleo, endereco: enderecoStr, itens: JSON.stringify(itensArr) },
-      { ...nucleo, itens: JSON.stringify(itensArr) },
-      nucleo
+      { ...nucleo, endereco:end },
+      { ...nucleo, endereco_completo:end },
+      { ...nucleo, endereco:end, itens:JSON.stringify(itens) },
+      { ...semData, endereco:end },
+      { ...semData, endereco_completo:end },
+      { ...semData, itens:JSON.stringify(itens) },
+      semData
     ];
     for (const p of tentativas){
       try{
         const { data, error } = await supabase.from('pedidos').insert([p]).select().single();
         if (!error) return data;
-        if (!/column|schema|could not find|PGRST204|42703/i.test(error.message || '')) { console.warn('Pedido:', error.message); return null; }
+        if (!/column|schema|could not find|PGRST204|42703/i.test(error.message||'')){ console.warn('Pedido:',error.message); return null; }
       }catch(e){ return null; }
     }
     return null;
   }
 
-  /* ── Finalizar ── */
-  let enviando = false;
   async function finalizar(){
-    if (enviando || carrinho.length === 0) return;
-    const nomes = Object.keys(regras);
-    nomes.forEach(n => tocados.add(n));
-    const invalidos = nomes.filter(n => !validarCampo(n, true));
-    atualizarProgresso();
-    if (invalidos.length){
-      const primeiro = $(invalidos[0]);
-      primeiro.scrollIntoView({ behavior:'smooth', block:'center' });
-      primeiro.closest('.campo').classList.add('treme');
-      setTimeout(()=>primeiro.closest('.campo').classList.remove('treme'), 400);
-      setTimeout(()=>primeiro.focus({ preventScroll:true }), 450);
-      mostrarToast(`Confira ${invalidos.length === 1 ? 'o campo destacado' : 'os ' + invalidos.length + ' campos destacados'}.`, null, null, true);
-      return;
+    if (enviando || !selecionados.length) return;
+    const ns = Object.keys(regras); ns.forEach(n=>tocados.add(n));
+    const ruins = ns.filter(n=>!validar(n,true)); progresso();
+    if (ruins.length){
+      const el = $(ruins[0]); el.scrollIntoView({behavior:'smooth',block:'center'});
+      const w = el.closest('.ck-campo'); w.classList.add('ck-treme'); setTimeout(()=>w.classList.remove('ck-treme'),400);
+      setTimeout(()=>el.focus({preventScroll:true}),450);
+      toast(ruins.length===1?'Confira o campo destacado.':`Confira os ${ruins.length} campos destacados.`,'err'); return;
     }
     enviando = true;
-    const botoes = [$('btn-finalizar'), $('btn-finalizar-mobile')];
-    botoes.forEach(b => { b.classList.add('carregando'); b.disabled = true; b.querySelector('.txt').textContent = 'Registrando pedido…'; });
+    ['ck-enviar','ck-enviar-m'].forEach(id=>{ const b=$(id); b.classList.add('load'); b.disabled=true; b.querySelector('.txt').textContent='Registrando…'; });
 
-    const itens = carrinho.map(i => ({ id:i.id, nome:i.nome, preco:i.preco, quantidade:i.quantidade, imagem:i.imagem }));
-    const total = totalCarrinho();
-    const nome = $('nome').value.trim();
-    const cpf = soDigitos($('cpf').value);
-    const telefone = soDigitos($('telefone').value);
-    const email = $('email').value.trim();
-    const comp = $('complemento').value.trim();
-    const enderecoStr = `${$('rua').value.trim()}, ${$('numero').value.trim()}${comp ? ' - ' + comp : ''} - ${$('bairro').value.trim()}, ${$('cidade').value.trim()}/${$('uf').value} - CEP ${mascaraCEP($('cep').value)}`;
-
-    const nucleo = {
-      cliente_nome: nome, cpf, telefone, email,
-      itens, total_centavos: Math.round(total * 100),
-      status: 'pendente', data: new Date().toISOString()
-    };
-    const salvo = await salvarPedido(nucleo, enderecoStr, itens);
+    const itens = selecionados.map(i=>({ id:i.id, nome:i.nome, preco:i.preco, quantidade:i.quantidade, imagem:i.imagem }));
+    const tot = total();
+    const nome=$('nome').value.trim(), cpf=soD($('cpf').value), tel=soD($('telefone').value), email=$('email').value.trim(), comp=$('complemento').value.trim();
+    const end = `${$('rua').value.trim()}, ${$('numero').value.trim()}${comp?' - '+comp:''} - ${$('bairro').value.trim()}, ${$('cidade').value.trim()}/${$('uf').value} - CEP ${mCEP($('cep').value)}`;
+    const nucleo = { cliente_nome:nome, cpf, telefone:tel, email, itens, total_centavos:Math.round(tot*100), status:'pendente', data:new Date().toISOString() };
+    const salvo = await salvarPedido(nucleo, end, itens);
     const codigo = salvo?.id ? `VC-${String(salvo.id).slice(-6).toUpperCase()}` : `VC-${Date.now().toString().slice(-6)}`;
 
     const msg =
@@ -610,38 +501,49 @@ const base = import.meta.env.BASE_URL;
 🧾 Pedido: *#${codigo}*
 
 👤 *Cliente:* ${nome}
-🪪 CPF: ${mascaraCPF(cpf)}
-📱 Telefone: ${mascaraTel(telefone)}
+🪪 CPF: ${mCPF(cpf)}
+📱 Telefone: ${mTel(tel)}
 ✉️ E-mail: ${email}
 
-💍 *Itens do pedido:*
-${itens.map(i => `• ${i.quantidade}x ${i.nome} — ${brl(i.preco * i.quantidade)}`).join('\n')}
+💍 *Itens:*
+${itens.map(i=>`• ${i.quantidade}x ${i.nome} — ${brl(i.preco*i.quantidade)}`).join('\n')}
 
-💰 *Total: ${brl(total)}* (frete a combinar)
+💰 Subtotal: ${brl(subtotal())}${cupom?`\n🎟️ Cupom ${cupom.codigo}: −${brl(desconto())}`:''}
+💰 *Total: ${brl(tot)}* (frete a combinar)
 
-📦 *Endereço de entrega:*
-${enderecoStr}
+📦 *Entrega:*
+${end}
 
-_Pedido enviado pelo site vivicorrea.com.br_`;
-    const texto = encodeURIComponent(msg);
-    await descobrirNumero();
-    const link = numeroVivi ? `https://wa.me/${numeroVivi}?text=${texto}` : `https://wa.me/?text=${texto}`;
+_Pedido enviado pelo site da Vivi Corrêa_`;
+    const n = await descobrirNumero();
+    const link = n ? `https://wa.me/${n}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
-    $('conteudo-checkout').style.display = 'none';
-    $('barra-mobile').style.display = 'none';
-    $('pedido-num').textContent = `Pedido #${codigo}`;
-    $('btn-whatsapp').href = link;
-    $('painel-sucesso').classList.add('visivel');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    $('ck-conteudo').style.display='none'; $('ck-bar').style.display='none';
+    $('ck-num').textContent = `Pedido #${codigo}`;
+    $('ck-wa').href = link;
+    if (!salvo) $('ck-sucesso-p').textContent = 'Seu pedido está pronto no WhatsApp da Vivi. Toque no botão abaixo para enviar os detalhes.';
+    $('ck-sucesso').classList.add('on');
+    window.scrollTo({top:0,behavior:'smooth'});
 
-    carrinho = []; persistir();
-    setTimeout(() => { window.location.href = link; }, 1800);
+    try{
+      const resto = (ler(K.cart,[])||[]).filter(i=>!selecionados.some(s=>String(s.id)===String(i.id)));
+      localStorage.setItem(K.cart, JSON.stringify(resto));
+      localStorage.removeItem(K.sel); localStorage.removeItem(K.cup);
+    }catch(e){}
+    window.dispatchEvent(new CustomEvent('carrinho-atualizado'));
+    medir();
+    setTimeout(()=>{ window.location.href = link; }, 1800);
   }
-  $('form-checkout').addEventListener('submit', e => { e.preventDefault(); finalizar(); });
-  $('btn-finalizar-mobile').addEventListener('click', finalizar);
 
-  renderizar();
-  atualizarProgresso();
+  $('ck-form').addEventListener('submit', e=>{ e.preventDefault(); finalizar(); });
+  $('ck-enviar-m').addEventListener('click', finalizar);
+  window.addEventListener('resize', medir);
+  window.addEventListener('orientationchange', ()=>setTimeout(medir,260));
+  window.addEventListener('load', medir);
+  if (window.ResizeObserver) new ResizeObserver(medir).observe($('ck-bar'));
+
+  carregar(); resumo(); progresso(); medir(); descobrirNumero();
+  if (soD($('cep').value).length===8) buscarCEP();
 </script>
 </body>
 </html>
