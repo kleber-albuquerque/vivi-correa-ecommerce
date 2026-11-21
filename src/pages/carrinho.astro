@@ -25,7 +25,7 @@ import Header from '../components/Header.astro';
         <!-- Mensagem se o carrinho estiver vazio -->
         <div id="carrinho-vazio" class="text-center hidden">
             <p class="text-gray-500 mb-6">Seu carrinho está vazio.</p>
-            <a href="/" class="bg-gray-900 text-white px-8 py-3 rounded text-sm uppercase tracking-wider hover:bg-brand transition">Voltar às compras</a>
+            <a href={`${import.meta.env.BASE_URL}`} class="bg-gray-900 text-white px-8 py-3 rounded text-sm uppercase tracking-wider hover:bg-brand transition">Voltar às compras</a>
         </div>
 
         <!-- Lista de Produtos -->
@@ -39,7 +39,7 @@ import Header from '../components/Header.astro';
                     <span id="total-carrinho" class="text-2xl font-bold text-brand"></span>
                 </div>
                 
-                <a href="/checkout" class="block text-center w-full bg-gray-900 text-white py-4 uppercase tracking-widest text-sm hover:bg-brand transition">
+                <a href={`${import.meta.env.BASE_URL}checkout`} class="block text-center w-full bg-gray-900 text-white py-4 uppercase tracking-widest text-sm hover:bg-brand transition">
                     Ir para o Checkout
                 </a>
                 <p class="text-xs text-center text-gray-400 mt-3">Frete e pagamento serão combinados após a finalização.</p>
@@ -49,11 +49,11 @@ import Header from '../components/Header.astro';
 
     <!-- Footer -->
     <footer class="bg-gray-900 text-white py-16 text-center text-sm">
-        <img src="/logo.png" alt="Vivi Correa" class="h-12 mx-auto mb-6 brightness-0 invert opacity-50" />
+        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Vivi Correa" class="h-12 mx-auto mb-6 brightness-0 invert opacity-50" />
         
         <div class="flex justify-center gap-6 mb-8 text-gray-400">
-            <a href="/quem-somos" class="hover:text-white transition">Quem Somos</a>
-            <a href="/ajuda" class="hover:text-white transition">Ajuda & Políticas</a>
+            <a href={`${import.meta.env.BASE_URL}quem-somos`} class="hover:text-white transition">Quem Somos</a>
+            <a href={`${import.meta.env.BASE_URL}ajuda`} class="hover:text-white transition">Ajuda & Políticas</a>
             <a href="https://wa.me/5571991064721" target="_blank" class="hover:text-white transition">Fale Conosco</a>
         </div>
         

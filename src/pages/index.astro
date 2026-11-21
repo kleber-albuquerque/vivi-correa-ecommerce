@@ -106,7 +106,7 @@ const { data: colares } = await supabase.from('produtos').select('*').eq('catego
                     <button class="scroll-btn-prev absolute -left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
                     <div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 scroll-container">
                         {destaques.map((produto) => (
-                            <a href={`/produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
+                            <a href={`${import.meta.env.BASE_URL}produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
                                 <div class="overflow-hidden rounded-sm mb-3 bg-gray-100 aspect-square relative"><img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" /></div>
                                 <div class="text-center">
                                     <h3 class="text-sm text-gray-900 mb-1 leading-tight group-hover/card:text-brand transition-colors truncate">{produto.nome}</h3>
@@ -126,13 +126,13 @@ const { data: colares } = await supabase.from('produtos').select('*').eq('catego
             <div class="container mx-auto px-6">
                 <div class="flex justify-between items-end mb-8">
                     <div><h2 class="text-3xl text-gray-900 mb-2">Anéis</h2><p class="text-gray-500 text-sm">Delicadeza que marca presença</p></div>
-                    <a href="/aneis" class="text-sm text-brand hover:underline font-semibold hidden md:block mb-2">Ver todos →</a>
+                    <a href={`${import.meta.env.BASE_URL}aneis`} class="text-sm text-brand hover:underline font-semibold hidden md:block mb-2">Ver todos →</a>
                 </div>
                 <div class="relative">
                     <button class="scroll-btn-prev absolute -left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
                     <div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 scroll-container">
                         {aneis.map((produto) => (
-                            <a href={`/produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
+                            <a href={`${import.meta.env.BASE_URL}produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
                                 <div class="overflow-hidden rounded-sm mb-3 bg-gray-100 aspect-square relative"><img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" /></div>
                                 <div class="text-center"><h3 class="text-sm text-gray-900 mb-1 leading-tight group-hover/card:text-brand transition-colors truncate">{produto.nome}</h3><p class="text-gray-600 font-medium text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}</p></div>
                             </a>
@@ -149,13 +149,13 @@ const { data: colares } = await supabase.from('produtos').select('*').eq('catego
             <div class="container mx-auto px-6">
                 <div class="flex justify-between items-end mb-8">
                     <div><h2 class="text-3xl text-gray-900 mb-2">Brincos</h2><p class="text-gray-500 text-sm">O brilho perfeito para o seu olhar</p></div>
-                    <a href="/brincos" class="text-sm text-brand hover:underline font-semibold hidden md:block mb-2">Ver todos →</a>
+                    <a href={`${import.meta.env.BASE_URL}brincos`} class="text-sm text-brand hover:underline font-semibold hidden md:block mb-2">Ver todos →</a>
                 </div>
                 <div class="relative">
                     <button class="scroll-btn-prev absolute -left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
                     <div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 scroll-container">
                         {brincos.map((produto) => (
-                            <a href={`/produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
+                            <a href={`${import.meta.env.BASE_URL}produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
                                 <div class="overflow-hidden rounded-sm mb-3 bg-gray-100 aspect-square relative"><img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" /></div>
                                 <div class="text-center"><h3 class="text-sm text-gray-900 mb-1 leading-tight group-hover/card:text-brand transition-colors truncate">{produto.nome}</h3><p class="text-gray-600 font-medium text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}</p></div>
                             </a>
@@ -172,13 +172,13 @@ const { data: colares } = await supabase.from('produtos').select('*').eq('catego
             <div class="container mx-auto px-6">
                 <div class="flex justify-between items-end mb-8">
                     <div><h2 class="text-3xl text-gray-900 mb-2">Colares</h2><p class="text-gray-500 text-sm">Para iluminar o seu colo</p></div>
-                    <a href="/colares" class="text-sm text-brand hover:underline font-semibold hidden md:block mb-2">Ver todos →</a>
+                    <a href={`${import.meta.env.BASE_URL}colares`} class="text-sm text-brand hover:underline font-semibold hidden md:block mb-2">Ver todos →</a>
                 </div>
                 <div class="relative">
                     <button class="scroll-btn-prev absolute -left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
                     <div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 scroll-container">
                         {colares.map((produto) => (
-                            <a href={`/produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
+                            <a href={`${import.meta.env.BASE_URL}produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
                                 <div class="overflow-hidden rounded-sm mb-3 bg-gray-100 aspect-square relative"><img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" /></div>
                                 <div class="text-center"><h3 class="text-sm text-gray-900 mb-1 leading-tight group-hover/card:text-brand transition-colors truncate">{produto.nome}</h3><p class="text-gray-600 font-medium text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}</p></div>
                             </a>
@@ -193,10 +193,10 @@ const { data: colares } = await supabase.from('produtos').select('*').eq('catego
     <Captura />
 
     <footer class="bg-gray-900 text-white py-16 text-center text-sm">
-        <img src="/logo.png" alt="Vivi Correa" class="h-12 mx-auto mb-6 brightness-0 invert opacity-50" />
+        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Vivi Correa" class="h-12 mx-auto mb-6 brightness-0 invert opacity-50" />
         <div class="flex justify-center gap-6 mb-8 text-gray-400">
-            <a href="/quem-somos" class="hover:text-white transition">Quem Somos</a>
-            <a href="/ajuda" class="hover:text-white transition">Ajuda & Políticas</a>
+            <a href={`${import.meta.env.BASE_URL}quem-somos`} class="hover:text-white transition">Quem Somos</a>
+            <a href={`${import.meta.env.BASE_URL}ajuda`} class="hover:text-white transition">Ajuda & Políticas</a>
             <a href="https://wa.me/5571991064721" target="_blank" class="hover:text-white transition">Fale Conosco</a>
         </div>
         <p class="text-gray-500 text-xs">&copy; 2026 Vivi Correa. Todos os direitos reservados.</p>

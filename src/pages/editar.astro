@@ -21,14 +21,14 @@ import 'quill/dist/quill.snow.css';
 
     <aside class="w-64 bg-gray-900 text-white flex flex-col">
         <div class="p-6 text-center border-b border-gray-800">
-            <img src="/logo.png" alt="Vivi Correa" class="h-16 mx-auto brightness-0 invert" />
+            <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Vivi Correa" class="h-16 mx-auto brightness-0 invert" />
             <p class="text-xs uppercase tracking-widest mt-2 text-gray-400">Admin</p>
         </div>
         <nav class="flex-1 p-4 space-y-2">
-            <a href="/admin" class="block px-4 py-3 bg-gray-800 rounded text-brand font-semibold">Produtos</a>
-            <a href="/admin/pedidos" class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Pedidos</a>
-            <a href="/admin/config" class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Configurações (Banner)</a>
-            <a href="/admin/conteudo" class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Conteúdo do Site</a>
+            <a href={`${import.meta.env.BASE_URL}admin`} class="block px-4 py-3 bg-gray-800 rounded text-brand font-semibold">Produtos</a>
+            <a href={`${import.meta.env.BASE_URL}admin/pedidos`} class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Pedidos</a>
+            <a href={`${import.meta.env.BASE_URL}admin/config`} class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Configurações (Banner)</a>
+            <a href={`${import.meta.env.BASE_URL}admin/conteudo`} class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Conteúdo do Site</a>
         </nav>
     </aside>
 
@@ -36,7 +36,7 @@ import 'quill/dist/quill.snow.css';
         <div class="max-w-4xl mx-auto">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-3xl" id="titulo-pagina">Carregando...</h2>
-                <a href="/admin" class="text-gray-500 hover:text-gray-800 text-sm">← Voltar</a>
+                <a href={`${import.meta.env.BASE_URL}admin`} class="text-gray-500 hover:text-gray-800 text-sm">← Voltar</a>
             </div>
 
             <form id="form-produto" class="bg-white p-8 rounded-lg shadow space-y-6">
@@ -268,14 +268,14 @@ import 'quill/dist/quill.snow.css';
                 btn.disabled = false;
             } else {
                 document.getElementById('msg-sucesso').classList.remove('hidden');
-                setTimeout(() => { window.location.href = '/admin'; }, 1500);
+                setTimeout(() => { window.location.href = import.meta.env.BASE_URL + 'admin'; }, 1500);
             }
         });
 
         document.getElementById('btn-excluir').addEventListener('click', async () => {
             if (confirm('Tem certeza que deseja excluir esta peça?')) {
                 await supabase.from('produtos').delete().eq('id', produtoId);
-                window.location.href = '/admin';
+                window.location.href = import.meta.env.BASE_URL + 'admin';
             }
         });
     </script>

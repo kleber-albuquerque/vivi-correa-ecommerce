@@ -12,7 +12,6 @@ export async function getStaticPaths() {
   const { data: produtos } = await supabase.from('produtos').select('id, nome');
   
   return produtos?.map((produto) => {
-    // Gera o slug exatamente igual ao link da home
     const slug = produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     return { params: { slug: slug }, props: { produtoId: produto.id } };
   }) || [];
@@ -30,57 +29,200 @@ const { data: produto } = await supabase
   .select('*')
   .eq('id', produtoId)
   .single();
+
+// 🔥 LÓGICA INTELIGENTE: Aceita string OU array JSON em imagem_url
+let imagens = [];
+if (produto?.imagem_url) {
+  if (typeof produto.imagem_url === 'string') {
+    // Tenta fazer parse como JSON, se falhar trata como string única
+    try {
+      const parsed = JSON.parse(produto.imagem_url);
+      imagens = Array.isArray(parsed) ? parsed : [produto.imagem_url];
+    } catch {
+      imagens = [produto.imagem_url];
+    }
+  } else if (Array.isArray(produto.imagem_url)) {
+    imagens = produto.imagem_url;
+  }
+}
+
+// Fallback se não tiver nenhuma imagem
+if (imagens.length === 0) {
+  imagens = ['/placeholder-produto.jpg'];
+}
+
+const ehUltimaPeca = produto?.estoque === 1;
+const semEstoque = produto?.estoque === 0;
 ---
 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>{produto.nome} - Vivi Correa</title>
+    <title>{produto?.nome || 'Produto'} - Vivi Correa</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
     <style is:global>
         body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
         h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
         .text-brand { color: #8B7355; }
         .hover\:text-brand:hover { color: #8B7355; }
+        
+        /* 🎨 ANIMAÇÕES E TRANSIÇÕES */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.8s ease-out; }
+        
+        /* 🔍 ZOOM NA IMAGEM */
+        .zoom-container {
+            overflow: hidden;
+            position: relative;
+            cursor: zoom-in;
+        }
+        .zoom-container img {
+            transition: transform 0.5s ease;
+        }
+        .zoom-container:hover img {
+            transform: scale(1.15);
+        }
+        
+        /* 📸 THUMBNAILS */
+        .thumb {
+            cursor: pointer;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .thumb:hover { opacity: 0.8; }
+        .thumb.active {
+            opacity: 1;
+            border-color: #8B7355;
+        }
+        
+        /* 🎉 TOAST NOTIFICATION */
+        .toast {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            transform: translateX(400px);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #8B7355;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            background: #8B7355;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        /* 🏷️ BADGE */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .badge-unico {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fbbf24;
+        }
     </style>
 </head>
 <body class="text-gray-800 antialiased">
     
     <Header />
 
-    <main class="container mx-auto px-6 py-16">
+    <main class="container mx-auto px-6 py-16 fade-in">
         <div class="flex flex-col md:flex-row gap-12 items-center md:items-start">
             
-            <!-- Imagem -->
+            <!-- 📸 GALERIA DE FOTOS -->
             <div class="md:w-1/2 w-full">
-                <div class="bg-gray-100 rounded-sm overflow-hidden aspect-square relative">
-                    <img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover" />
+                <!-- Imagem Principal com ZOOM -->
+                <div class="zoom-container bg-white rounded-sm overflow-hidden aspect-square relative mb-4 shadow-sm">
+                    <img 
+                        id="imagem-principal"
+                        src={imagens[0]} 
+                        alt={produto?.nome} 
+                        class="w-full h-full object-cover" 
+                    />
+                    {ehUltimaPeca && (
+                        <div class="absolute top-4 left-4">
+                            <span class="badge badge-unico">✨ Peça única</span>
+                        </div>
+                    )}
                 </div>
+                
+                <!-- Thumbnails (só aparece se tiver mais de 1 foto) -->
+                {imagens.length > 1 && (
+                    <div class="grid grid-cols-4 gap-3">
+                        {imagens.map((img, idx) => (
+                            <div 
+                                class={`thumb bg-white aspect-square rounded overflow-hidden ${idx === 0 ? 'active' : ''}`}
+                                data-src={img}
+                                data-idx={idx}
+                            >
+                                <img src={img} alt={`${produto?.nome} ${idx + 1}`} class="w-full h-full object-cover" />
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            <!-- Informações -->
+            <!-- 📝 INFORMAÇÕES DO PRODUTO -->
             <div class="md:w-1/2 w-full text-center md:text-left">
-                <p class="text-xs uppercase tracking-widest text-brand mb-2">{produto.colecao || produto.categoria}</p>
-                <h1 class="text-4xl text-gray-900 mb-4 leading-tight">{produto.nome}</h1>
+                <p class="text-xs uppercase tracking-widest text-brand mb-2">
+                    {produto?.colecao || produto?.categoria}
+                </p>
+                <h1 class="text-4xl text-gray-900 mb-4 leading-tight">{produto?.nome}</h1>
                 <p class="text-2xl text-gray-800 font-semibold mb-6">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((produto?.preco_centavos || 0) / 100)}
                 </p>
                 
-                {produto.numeracao && (
+                {produto?.numeracao && (
                     <p class="text-sm text-gray-600 mb-6 font-semibold">
                         Numeração disponível: <span class="font-normal">{produto.numeracao}</span>
                     </p>
                 )}
                 
                 <div class="text-gray-600 leading-relaxed mb-8 whitespace-pre-line text-sm">
-                    {produto.descricao || "Joia artesanal exclusiva Vivi Correa. Cada peça é única e feita à mão com carinho."}
+                    {produto?.descricao || "Joia artesanal exclusiva Vivi Correa. Cada peça é única e feita à mão com carinho."}
                 </div>
 
-                <!-- Botão de Comprar -->
-                <button id="btn-add-carrinho" class="w-full bg-gray-900 text-white py-4 px-8 uppercase tracking-widest text-sm hover:bg-brand transition duration-300">
-                    Adicionar ao Carrinho
+                <!-- 🛒 BOTÃO DE COMPRAR -->
+                <button 
+                    id="btn-add-carrinho" 
+                    disabled={semEstoque}
+                    class="w-full bg-gray-900 text-white py-4 px-8 uppercase tracking-widest text-sm hover:bg-brand transition duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                    {semEstoque ? 'Produto Esgotado' : 'Adicionar ao Carrinho'}
                 </button>
+                
+                {ehUltimaPeca && (
+                    <p class="text-xs text-center md:text-left text-amber-700 mt-3 font-medium">
+                        ⚠️ Atenção: última unidade disponível!
+                    </p>
+                )}
             </div>
 
         </div>
@@ -91,24 +233,55 @@ const { data: produto } = await supabase
         <p class="mt-2 text-xs">Desenvolvido por KA Agência Criativa</p>
     </footer>
 
-    <!-- Passamos os dados do produto via data-attributes para o JavaScript ler com segurança -->
+    <!-- 🎉 TOAST NOTIFICATION -->
+    <div id="toast-carrinho" class="toast">
+        <div class="toast-icon">✓</div>
+        <div>
+            <p class="font-semibold text-gray-900 text-sm">Produto adicionado!</p>
+            <p class="text-xs text-gray-500">Veja no seu carrinho</p>
+        </div>
+    </div>
+
+    <!-- Dados do produto para o JavaScript -->
     <div id="dados-produto" 
-         data-id={produto.id} 
-         data-nome={produto.nome} 
-         data-preco={produto.preco_centavos / 100} 
-         data-imagem={produto.imagem_url}
+         data-id={produto?.id} 
+         data-nome={produto?.nome} 
+         data-preco={(produto?.preco_centavos || 0) / 100} 
+         data-imagem={imagens[0]}
          class="hidden">
     </div>
 
     <script>
+        // 🔥 GALERIA: Trocar imagem principal ao clicar nos thumbnails
+        const imagemPrincipal = document.getElementById('imagem-principal');
+        const thumbs = document.querySelectorAll('.thumb');
+        
+        thumbs.forEach(thumb => {
+            thumb.addEventListener('click', () => {
+                // Remove active de todos
+                thumbs.forEach(t => t.classList.remove('active'));
+                // Ativa o clicado
+                thumb.classList.add('active');
+                // Troca a imagem principal com fade
+                imagemPrincipal.style.opacity = '0';
+                setTimeout(() => {
+                    imagemPrincipal.src = thumb.dataset.src;
+                    imagemPrincipal.style.opacity = '1';
+                }, 200);
+            });
+        });
+        
+        // Adiciona transição suave à imagem principal
+        imagemPrincipal.style.transition = 'opacity 0.3s ease';
+
+        // 🛒 CARRINHO + TOAST
         document.getElementById('btn-add-carrinho').addEventListener('click', () => {
-            // Pega os dados seguros do HTML
             const divDados = document.getElementById('dados-produto');
             const produto = {
                 id: divDados.dataset.id,
                 nome: divDados.dataset.nome,
                 preco: parseFloat(divDados.dataset.preco),
-                imagem: divDados.dataset.imagem
+                imagem: imagemPrincipal.src // Pega a imagem atual (caso usuário tenha trocado)
             };
 
             let carrinho = JSON.parse(localStorage.getItem('carrinho_vivi')) || [];
@@ -123,14 +296,16 @@ const { data: produto } = await supabase
 
             localStorage.setItem('carrinho_vivi', JSON.stringify(carrinho));
 
-            const btn = document.getElementById('btn-add-carrinho');
-            btn.innerText = "Adicionado! ✓";
-            btn.classList.replace('bg-gray-900', 'bg-green-600');
+            // 🎉 Mostra o TOAST elegante
+            const toast = document.getElementById('toast-carrinho');
+            toast.classList.add('show');
             
             setTimeout(() => {
-                btn.innerText = "Adicionar ao Carrinho";
-                btn.classList.replace('bg-green-600', 'bg-gray-900');
-            }, 2000);
+                toast.classList.remove('show');
+            }, 3000);
+            
+            // Dispara evento customizado para o Header atualizar o contador
+            window.dispatchEvent(new CustomEvent('carrinho-atualizado'));
         });
     </script>
 </body>

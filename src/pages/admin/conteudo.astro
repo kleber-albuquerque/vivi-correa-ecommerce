@@ -19,17 +19,17 @@ import '../../styles/global.css';
 
     <aside class="w-64 bg-gray-900 text-white flex flex-col">
         <div class="p-6 text-center border-b border-gray-800">
-            <img src="/logo.png" alt="Vivi Correa" class="h-12 mx-auto brightness-0 invert" />
+            <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Vivi Correa" class="h-12 mx-auto brightness-0 invert" />
             <p class="text-xs uppercase tracking-widest mt-2 text-gray-400">Admin</p>
         </div>
         <nav class="flex-1 p-4 space-y-2">
-            <a href="/admin" class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Produtos</a>
-            <a href="/admin/pedidos" class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Pedidos</a>
-            <a href="/admin/config" class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Configurações (Banner)</a>
-            <a href="/admin/conteudo" class="block px-4 py-3 bg-gray-800 rounded text-brand font-semibold">Conteúdo do Site</a>
+            <a href={`${import.meta.env.BASE_URL}admin`} class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Produtos</a>
+            <a href={`${import.meta.env.BASE_URL}admin/pedidos`} class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Pedidos</a>
+            <a href={`${import.meta.env.BASE_URL}admin/config`} class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Configurações (Banner)</a>
+            <a href={`${import.meta.env.BASE_URL}admin/conteudo`} class="block px-4 py-3 bg-gray-800 rounded text-brand font-semibold">Conteúdo do Site</a>
         </nav>
         <div class="p-4 border-t border-gray-800">
-            <a href="/" target="_blank" class="block text-center text-sm text-gray-400 hover:text-white transition">Ver Loja Online ↗</a>
+            <a href={`${import.meta.env.BASE_URL}`} target="_blank" class="block text-center text-sm text-gray-400 hover:text-white transition">Ver Loja Online ↗</a>
         </div>
     </aside>
 

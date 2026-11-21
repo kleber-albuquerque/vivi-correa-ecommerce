@@ -1,25 +1,22 @@
 ---
 import '../styles/global.css';
+const base = import.meta.env.BASE_URL;
 ---
 <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
     <div class="container mx-auto px-6 py-6 relative">
-        
-        <!-- Logo Centralizada -->
         <div class="text-center">
-            <a href="/">
-                <img src="/logo.png" alt="Vivi Correa Joias" class="h-16 md:h-20 mx-auto mb-2" />
+            <a href={base}>
+                <img src={`${base}logo.png`} alt="Vivi Correa Joias" class="h-16 md:h-20 mx-auto mb-2" />
             </a>
         </div>
 
-        <!-- Ícones: Busca e Carrinho -->
         <div class="absolute right-6 top-6 md:top-8 flex items-center gap-4">
-            <a href="/busca" class="text-gray-700 hover:text-brand transition">
+            <a href={`${base}busca`} class="text-gray-700 hover:text-brand transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </a>
-            
-            <a href="/carrinho" class="flex items-center justify-center relative">
+            <a href={`${base}carrinho`} class="flex items-center justify-center relative">
                 <svg class="w-6 h-6 text-gray-700 hover:text-brand transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                 </svg>
@@ -27,28 +24,28 @@ import '../styles/global.css';
             </a>
         </div>
         
-        <!-- Menu -->
         <nav class="mt-4 flex flex-wrap justify-center gap-6 md:gap-8 text-xs md:text-sm uppercase tracking-widest text-gray-500">
-            <a href="/" class="hover:text-brand transition">Início</a>
-            <a href="/aneis" class="hover:text-brand transition">Anéis</a>
-            <a href="/brincos" class="hover:text-brand transition">Brincos</a>
-            <a href="/colares" class="hover:text-brand transition">Colares</a>
-            <a href="/colecoes" class="hover:text-brand transition">Coleções</a>
-            <a href="/quem-somos" class="hover:text-brand transition">Quem Somos</a>
-            <a href="/ajuda" class="hover:text-brand transition">Ajuda</a>
+            <a href={base} class="hover:text-brand transition">Início</a>
+            <a href={`${base}aneis`} class="hover:text-brand transition">Anéis</a>
+            <a href={`${base}brincos`} class="hover:text-brand transition">Brincos</a>
+            <a href={`${base}colares`} class="hover:text-brand transition">Colares</a>
+            <a href={`${base}colecoes`} class="hover:text-brand transition">Coleções</a>
+            <a href={`${base}quem-somos`} class="hover:text-brand transition">Quem Somos</a>
+            <a href={`${base}ajuda`} class="hover:text-brand transition">Ajuda</a>
         </nav>
     </div>
 </header>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    function atualizarContador() {
         const carrinho = JSON.parse(localStorage.getItem('carrinho_vivi')) || [];
-        const totalItens = carrinho.reduce((acc, item) => acc + item.quantidade, 0);
-        
+        const total = carrinho.reduce((acc, item) => acc + item.quantidade, 0);
         const contador = document.getElementById('contador-carrinho');
-        if (totalItens > 0) {
-            contador.innerText = totalItens;
-            contador.classList.remove('hidden');
+        if (contador) {
+            contador.innerText = total;
+            contador.classList.toggle('hidden', total === 0);
         }
-    });
+    }
+    document.addEventListener('DOMContentLoaded', atualizarContador);
+    window.addEventListener('carrinho-atualizado', atualizarContador);
 </script>
