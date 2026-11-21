@@ -1,10 +1,14 @@
 import { defineConfig } from 'astro/config';
-import tailwind from '@astrojs/tailwind';
+import tailwindcss from '@tailwindcss/vite';
+// import pagefind from 'astro-pagefind'; // Descomente se usar o Pagefind
 
-// https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind()],
-  // Define o caminho base para funcionar no GitHub Pages
   base: '/vivi-correa-ecommerce/',
-  output: 'static'
+  output: 'static',
+  integrations: [
+    // pagefind(), // Mantenha suas outras integrações aqui
+  ],
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });

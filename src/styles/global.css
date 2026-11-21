@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+/* Configuração visual da Vivi Corrêa no padrão moderno do Tailwind v4 */
+@theme {
+  --color-bege: #faf9f7;
+  --color-dourado: #8B7355;
+  --font-heading: 'Cormorant Garamond', serif;
+  --font-body: 'Montserrat', sans-serif;
+}
