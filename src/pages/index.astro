@@ -33,13 +33,8 @@ const colares  = produtos.filter(p=>String(p.categoria||'').toLowerCase().starts
 const mapaCol = new Map();
 produtos.forEach(p=>{ const c = String(p.colecao||'').trim(); if(!c) return; if(!mapaCol.has(c)) mapaCol.set(c,[]); mapaCol.get(c).push(p); });
 const colecoes = Array.from(mapaCol.entries()).map(([nome,ps])=>({ nome, slug:slugify(nome), qtd:ps.length, mosaico:ps.slice(0,3).map(p=>fotosDe(p.imagem_url)[0]) })).sort((a,b)=>b.qtd-a.qtd);
-const totalPecas = produtos.reduce((s,p)=> s + ((p.estoque===null||p.estoque===undefined) ? 1 : Math.max(0,parseInt(p.estoque)||0)), 0);
-const unicas = produtos.filter(p=>parseInt(p.estoque)===1).length;
 const atelieTexto = atelie && atelie.length > 90 ? atelie.slice(0,420).trim() + '…' : 'Cada joia nasce de um desenho à mão, passa pelo fogo, pela lima e pela paciência do polimento. Nada aqui é produzido em série: uma peça por vez, com o tempo que a matéria pede.';
 const atelierImgs = (destaques.length?destaques:produtos).slice(0,4).map(p=>fotosDe(p.imagem_url)[0]);
-
-const seed = { produtos, banners, base };
-const seedJSON = JSON.stringify(seed).replace(/</g,'\\u003c');
 
 const trilhos = [
   { id:'destaques', titulo:'Escolhidas pela Vivi', sub:'Curadoria', hue:'ouro',   itens:destaques, link:`${base}colecoes`, linkTxt:'Ver tudo' },
@@ -47,6 +42,9 @@ const trilhos = [
   { id:'brincos',   titulo:'Brincos',              sub:'No rosto', hue:'lapis',  itens:brincos,   link:`${base}brincos`,  linkTxt:'Todos os brincos' },
   { id:'colares',   titulo:'Colares',              sub:'No peito', hue:'verde',  itens:colares,   link:`${base}colares`,  linkTxt:'Todos os colares' },
 ].filter(t=>t.itens.length);
+
+const primeiraAncora = colecoes.length ? 'sec-colecoes' : (trilhos.length ? `sec-${trilhos[0].id}` : 'sec-atelie');
+const seedJSON = JSON.stringify({ produtos, banners }).replace(/</g,'\\u003c');
 ---
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -54,7 +52,7 @@ const trilhos = [
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Vivi Corrêa — Joias Autorais Feitas à Mão</title>
-<meta name="description" content="Joalheria artesanal de Vivi Corrêa. Anéis, brincos e colares autorais, feitos à mão um a um. Coleções Abrolhos, Origens e peças únicas.">
+<meta name="description" content="Joalheria artesanal de Vivi Corrêa. Anéis, brincos e colares autorais, feitos à mão um a um. Coleções autorais e peças únicas.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style is:global>
@@ -75,84 +73,54 @@ const trilhos = [
   .hm-aurora i:nth-child(3){width:460px;height:460px;bottom:-190px;left:24%;background:radial-gradient(circle,var(--hue),transparent 70%);opacity:.22;animation-delay:-21s}
   @keyframes hmFlutua{0%,100%{transform:translate3d(0,0,0) scale(1)}34%{transform:translate3d(46px,-38px,0) scale(1.09)}67%{transform:translate3d(-34px,30px,0) scale(.94)}}
 
-  .hm-progresso{position:fixed;left:0;right:0;top:var(--hdr-h);height:2px;z-index:49;background:transparent;pointer-events:none}
+  .hm-progresso{position:fixed;left:0;right:0;top:var(--hdr-h);height:2px;z-index:49;pointer-events:none}
   .hm-progresso i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--bronze-esc),var(--ouro) 42%,var(--cobre) 72%,var(--lapis));box-shadow:0 0 12px rgba(201,162,39,.6)}
 
-  /* ─── HERO ─── */
-  .hm-hero{position:relative;min-height:min(84vh,720px);display:flex;align-items:flex-end;overflow:hidden;background:var(--carvao)}
+  /* ─── HERO — imagem pura ─── */
+  .hm-hero{position:relative;height:clamp(420px,78vh,860px);overflow:hidden;background:var(--carvao)}
   .hm-hero-palco{position:absolute;inset:0}
-  .hm-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.1s ease,transform 7s linear;transform:scale(1.06)}
+  .hm-slide{position:absolute;inset:0;opacity:0;transform:scale(1.07);transition:opacity 1.15s ease,transform 8s linear}
   .hm-slide.on{opacity:1;transform:scale(1)}
   .hm-slide img{width:100%;height:100%;object-fit:cover;display:block}
-  .hm-hero-veu{position:absolute;inset:0;background:
-    linear-gradient(to top,rgba(18,16,14,.94) 0%,rgba(18,16,14,.7) 34%,rgba(18,16,14,.24) 64%,rgba(18,16,14,.5) 100%),
-    radial-gradient(120% 80% at 12% 92%,rgba(201,162,39,.3),transparent 58%),
-    radial-gradient(90% 70% at 92% 8%,rgba(176,106,79,.28),transparent 60%)}
+  .hm-hero-veu{position:absolute;inset:0;pointer-events:none;background:
+    linear-gradient(to top,rgba(18,16,14,.62) 0%,rgba(18,16,14,.12) 26%,rgba(18,16,14,0) 52%,rgba(18,16,14,.28) 100%),
+    radial-gradient(130% 100% at 50% 50%,transparent 52%,rgba(18,16,14,.42) 100%)}
   .hm-hero-mesh{position:absolute;inset:0;background:
-    radial-gradient(70% 60% at 18% 22%,rgba(201,162,39,.4),transparent 62%),
-    radial-gradient(60% 60% at 82% 18%,rgba(176,106,79,.36),transparent 62%),
-    radial-gradient(80% 70% at 62% 92%,rgba(61,107,150,.3),transparent 64%),
+    radial-gradient(70% 60% at 18% 22%,rgba(201,162,39,.44),transparent 62%),
+    radial-gradient(60% 60% at 82% 18%,rgba(176,106,79,.4),transparent 62%),
+    radial-gradient(80% 70% at 62% 92%,rgba(61,107,150,.32),transparent 64%),
     linear-gradient(150deg,#12100e,#241d16 34%,#3d3226 62%,#6f5940 100%)}
-  .hm-hero-in{position:relative;z-index:2;width:100%;max-width:1240px;margin:0 auto;padding:34px 18px 30px;color:#fff}
-  .hm-eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:9.5px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--ouroclaro);margin-bottom:14px}
-  .hm-eyebrow i{display:block;width:26px;height:1px;background:linear-gradient(90deg,var(--ouro),transparent)}
-  .hm-hero h1{margin:0;font-size:clamp(38px,10.5vw,86px);line-height:.96;letter-spacing:-.015em;max-width:16ch;
-    text-shadow:0 6px 34px rgba(0,0,0,.5)}
-  .hm-hero h1 em{font-style:italic;color:var(--ouroclaro)}
-  .hm-hero p{margin:16px 0 0;font-size:clamp(13px,3.4vw,15.5px);line-height:1.7;color:rgba(255,255,255,.84);max-width:46ch}
-  .hm-hero-acoes{display:flex;gap:11px;flex-wrap:wrap;margin-top:24px}
-  .hm-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px 24px;border:none;border-radius:99px;cursor:pointer;text-decoration:none;
-    font-family:inherit;font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#12100e;
-    background:linear-gradient(115deg,var(--ouroclaro),var(--ouro) 46%,#e8c65a 78%,var(--ouroclaro));background-size:190% 180%;
-    box-shadow:0 10px 30px rgba(201,162,39,.4);transition:background-position .55s,transform .22s,box-shadow .3s}
-  .hm-btn:hover{background-position:100% 0;transform:translateY(-2px);box-shadow:0 16px 38px rgba(201,162,39,.5)}
-  .hm-btn:active{transform:translateY(0) scale(.99)}
-  .hm-btn svg{width:15px;height:15px}
-  .hm-btn-vidro{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.34);backdrop-filter:blur(8px);box-shadow:none}
-  .hm-btn-vidro:hover{background:#fff;color:var(--espresso);border-color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.3)}
-  .hm-btn-escuro{background:linear-gradient(115deg,#12100e,#3d3226 30%,var(--bronze) 72%,var(--ouro));color:#fff;box-shadow:0 10px 26px rgba(36,29,22,.34)}
-  .hm-btn-linha{background:none;color:var(--tinta2);border:1.5px solid var(--linho);box-shadow:none}
-  .hm-btn-linha:hover{border-color:var(--bronze);color:var(--bronze);background:#f3ebdd;transform:none;box-shadow:none}
-  .hm-hero-busca{display:flex;align-items:center;gap:10px;margin-top:22px;max-width:430px;padding:6px 6px 6px 16px;border-radius:99px;
-    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(10px);cursor:text;transition:all .3s}
-  .hm-hero-busca:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.5)}
-  .hm-hero-busca svg{width:17px;height:17px;color:var(--ouroclaro);flex-shrink:0}
-  .hm-hero-busca span{flex:1;font-size:12.5px;color:rgba(255,255,255,.72)}
-  .hm-hero-busca kbd{font-family:inherit;font-size:9.5px;letter-spacing:.1em;padding:5px 9px;border-radius:99px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);color:#fff}
-  .hm-hero-nav{position:absolute;z-index:3;right:18px;bottom:30px;display:flex;align-items:center;gap:9px}
-  .hm-seta{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.32);background:rgba(18,16,14,.42);color:#fff;
-    display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(6px);transition:all .28s}
-  .hm-seta:hover{background:var(--ouro);border-color:var(--ouro);color:#12100e}
+  .hm-hero-marca{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:32px}
+  .hm-hero-marca img{width:min(58%,340px);height:auto;filter:brightness(0) invert(1);opacity:.9;
+    filter:brightness(0) invert(1) drop-shadow(0 10px 40px rgba(0,0,0,.5));animation:hmRespira 7s ease-in-out infinite}
+  @keyframes hmRespira{0%,100%{transform:scale(1);opacity:.88}50%{transform:scale(1.035);opacity:1}}
+
+  .hm-hero-prog{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(255,255,255,.16);z-index:4}
+  .hm-hero-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ouroclaro),var(--ouro) 62%,var(--cobre));box-shadow:0 0 12px rgba(201,162,39,.7)}
+  .hm-dots{position:absolute;z-index:5;left:16px;bottom:20px;display:flex;gap:7px}
+  .hm-dots button{width:8px;height:8px;padding:0;border:none;border-radius:99px;background:rgba(255,255,255,.42);cursor:pointer;transition:all .35s;box-shadow:0 1px 5px rgba(0,0,0,.4)}
+  .hm-dots button:hover{background:rgba(255,255,255,.75)}
+  .hm-dots button.on{width:30px;background:linear-gradient(90deg,var(--ouroclaro),var(--ouro))}
+  .hm-hero-nav{position:absolute;z-index:5;right:16px;bottom:16px;display:flex;align-items:center;gap:8px}
+  .hm-seta{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.34);background:rgba(18,16,14,.4);color:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(7px);transition:all .28s}
+  .hm-seta:hover{background:linear-gradient(135deg,var(--ouroclaro),var(--ouro));border-color:transparent;color:#12100e;transform:scale(1.06)}
   .hm-seta svg{width:17px;height:17px}
-  .hm-dots{position:absolute;z-index:3;left:18px;bottom:34px;display:flex;gap:7px}
-  .hm-dots button{width:8px;height:8px;padding:0;border:none;border-radius:99px;background:rgba(255,255,255,.4);cursor:pointer;transition:all .35s}
-  .hm-dots button.on{width:28px;background:var(--ouro)}
-  .hm-hero-tag{position:absolute;z-index:3;top:22px;right:18px;display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:99px;
-    background:rgba(168,32,60,.9);color:#fff;font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;box-shadow:0 6px 20px rgba(168,32,60,.45)}
-  .hm-hero-tag i{width:6px;height:6px;border-radius:50%;background:#fff;animation:hmPisca 1.8s ease-in-out infinite}
-  @keyframes hmPisca{0%,100%{opacity:1}50%{opacity:.3}}
-
-  /* ─── MARQUEE ─── */
-  .hm-faixa{background:var(--espresso);color:var(--ouroclaro);overflow:hidden;border-top:1px solid rgba(201,162,39,.24);border-bottom:1px solid rgba(201,162,39,.24)}
-  .hm-faixa-t{display:flex;gap:44px;width:max-content;padding:13px 0;animation:hmCorre 34s linear infinite}
-  .hm-faixa-t span{display:inline-flex;align-items:center;gap:11px;font-size:10px;letter-spacing:.26em;text-transform:uppercase;white-space:nowrap}
-  .hm-faixa-t span::after{content:"✦";color:var(--ouro);font-size:11px}
-  @keyframes hmCorre{to{transform:translateX(-50%)}}
-  .hm-faixa:hover .hm-faixa-t{animation-play-state:paused}
-
-  /* ─── STATS ─── */
-  .hm-stats{max-width:1240px;margin:0 auto;padding:30px 18px 6px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-  .hm-stat{background:var(--perola);border:1px solid var(--linho);border-radius:14px;padding:16px 15px;position:relative;overflow:hidden;box-shadow:0 2px 10px rgba(36,29,22,.05)}
-  .hm-stat::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--ouro),var(--cobre))}
-  .hm-stat:nth-child(2)::after{background:linear-gradient(180deg,var(--cobre),var(--rubi))}
-  .hm-stat:nth-child(3)::after{background:linear-gradient(180deg,var(--lapis),var(--verde))}
-  .hm-stat:nth-child(4)::after{background:linear-gradient(180deg,var(--verde),var(--ouro))}
-  .hm-stat b{display:block;font-family:'Cormorant Garamond',serif;font-size:clamp(28px,7vw,38px);font-weight:600;line-height:1}
-  .hm-stat span{display:block;margin-top:5px;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta3)}
+  .hm-hero-busca{position:absolute;z-index:5;top:16px;right:16px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.34);
+    background:rgba(18,16,14,.4);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(7px);transition:all .28s}
+  .hm-hero-busca:hover{background:linear-gradient(135deg,var(--ouroclaro),var(--ouro));border-color:transparent;color:#12100e;transform:scale(1.06)}
+  .hm-hero-busca svg{width:18px;height:18px}
+  .hm-hero-cue{position:absolute;z-index:5;left:50%;bottom:70px;transform:translateX(-50%);width:40px;height:40px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.32);background:rgba(18,16,14,.32);color:#fff;display:flex;align-items:center;justify-content:center;
+    text-decoration:none;backdrop-filter:blur(7px);animation:hmCue 2.6s ease-in-out infinite;transition:background .28s,border-color .28s,color .28s}
+  .hm-hero-cue:hover{background:linear-gradient(135deg,var(--ouroclaro),var(--ouro));border-color:transparent;color:#12100e;animation-play-state:paused}
+  .hm-hero-cue svg{width:17px;height:17px}
+  @keyframes hmCue{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
 
   /* ─── SEÇÕES / TRILHOS ─── */
   .hm-sec{max-width:1240px;margin:0 auto;padding:38px 18px 8px;opacity:0;transform:translateY(26px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}
   .hm-sec.vis{opacity:1;transform:none}
+  .hm-sec--primeira{padding-top:44px}
   .hm-sec-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:16px}
   .hm-sec-cab .esq{min-width:0}
   .hm-sec-cab small{display:inline-flex;align-items:center;gap:8px;font-size:9.5px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--sh,var(--bronze));margin-bottom:7px}
@@ -203,7 +171,7 @@ const trilhos = [
 
   /* ─── COLEÇÕES ─── */
   .hm-cols{display:grid;grid-template-columns:1fr;gap:14px}
-  .hm-col{position:relative;display:block;text-decoration:none;color:#fff;border-radius:16px;overflow:hidden;min-height:230px;
+  .hm-col{position:relative;display:block;text-decoration:none;color:#fff;border-radius:16px;overflow:hidden;min-height:250px;
     background:var(--carvao);box-shadow:0 12px 32px rgba(36,29,22,.16);transition:transform .35s,box-shadow .35s}
   .hm-col:hover{transform:translateY(-5px);box-shadow:0 20px 46px rgba(36,29,22,.24)}
   .hm-col-mos{position:absolute;inset:0;display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:2px}
@@ -212,7 +180,7 @@ const trilhos = [
   .hm-col:hover .hm-col-mos img{transform:scale(1.07)}
   .hm-col-veu{position:absolute;inset:0;background:linear-gradient(to top,rgba(18,16,14,.92) 0%,rgba(18,16,14,.5) 44%,rgba(18,16,14,.16) 100%),
     radial-gradient(80% 60% at 8% 96%,rgba(201,162,39,.34),transparent 60%)}
-  .hm-col-c{position:relative;z-index:2;height:100%;min-height:230px;display:flex;flex-direction:column;justify-content:flex-end;padding:20px}
+  .hm-col-c{position:relative;z-index:2;height:100%;min-height:250px;display:flex;flex-direction:column;justify-content:flex-end;padding:20px}
   .hm-col-c small{font-size:9.5px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--ouroclaro);margin-bottom:6px}
   .hm-col-c h3{margin:0;font-size:clamp(25px,6vw,34px);line-height:1.04}
   .hm-col-c span{display:inline-flex;align-items:center;gap:8px;margin-top:11px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.86)}
@@ -220,8 +188,7 @@ const trilhos = [
   .hm-col:hover .hm-col-c span svg{transform:translateX(5px)}
 
   /* ─── ATELIÊ ─── */
-  .hm-atelie{position:relative;margin-top:44px;padding:46px 0;background:
-    linear-gradient(160deg,#12100e 0%,#241d16 30%,#3d3226 62%,#5a4632 100%);color:#fff;overflow:hidden}
+  .hm-atelie{position:relative;margin-top:44px;padding:46px 0;background:linear-gradient(160deg,#12100e 0%,#241d16 30%,#3d3226 62%,#5a4632 100%);color:#fff;overflow:hidden}
   .hm-atelie::before{content:"";position:absolute;inset:0;opacity:.14;pointer-events:none;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23a)'/%3E%3C/svg%3E")}
   .hm-atelie::after{content:"";position:absolute;width:520px;height:520px;top:-160px;right:-140px;border-radius:50%;filter:blur(70px);
@@ -235,17 +202,26 @@ const trilhos = [
   .hm-atelie-assin{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:var(--ouroclaro);margin:18px 0 20px}
   .hm-atelie-pilha{display:grid;gap:14px}
   .hm-atelie-f{position:relative;border-radius:14px;overflow:hidden;border:1px solid rgba(230,211,174,.24);aspect-ratio:4/3;
-    box-shadow:0 16px 40px rgba(0,0,0,.4);will-change:transform}
+    box-shadow:0 16px 40px rgba(0,0,0,.4);will-change:transform;margin:0}
   .hm-atelie-f img{width:100%;height:100%;object-fit:cover;display:block}
   .hm-atelie-f figcaption{position:absolute;left:0;right:0;bottom:0;padding:14px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
     color:#fff;background:linear-gradient(to top,rgba(18,16,14,.88),transparent)}
   .hm-atelie-num{position:absolute;top:12px;left:12px;font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--ouroclaro);text-shadow:0 3px 14px rgba(0,0,0,.6)}
 
+  /* ─── BOTÕES ─── */
+  .hm-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px 24px;border:none;border-radius:99px;cursor:pointer;text-decoration:none;
+    font-family:inherit;font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#12100e;
+    background:linear-gradient(115deg,var(--ouroclaro),var(--ouro) 46%,#e8c65a 78%,var(--ouroclaro));background-size:190% 180%;
+    box-shadow:0 10px 30px rgba(201,162,39,.4);transition:background-position .55s,transform .22s,box-shadow .3s}
+  .hm-btn:hover{background-position:100% 0;transform:translateY(-2px);box-shadow:0 16px 38px rgba(201,162,39,.5)}
+  .hm-btn:active{transform:translateY(0) scale(.99)}
+  .hm-btn:disabled{opacity:.7;cursor:wait;transform:none}
+  .hm-btn svg{width:15px;height:15px}
+
   /* ─── NEWSLETTER ─── */
   .hm-news{max-width:1240px;margin:0 auto;padding:44px 18px 10px}
   .hm-news-caixa{position:relative;overflow:hidden;border-radius:20px;padding:30px 22px;color:#fff;
-    background:linear-gradient(125deg,#12100e 0%,#1c2a38 26%,var(--lapis) 58%,var(--verde) 92%,#4a9a68 126%);
-    box-shadow:0 20px 50px rgba(61,107,150,.28)}
+    background:linear-gradient(125deg,#12100e 0%,#1c2a38 26%,var(--lapis) 58%,var(--verde) 92%,#4a9a68 126%);box-shadow:0 20px 50px rgba(61,107,150,.28)}
   .hm-news-caixa::after{content:"";position:absolute;inset:0;opacity:.15;pointer-events:none;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130'%3E%3Cfilter id='q'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='2'/%3E%3C/filter%3E%3Crect width='130' height='130' filter='url(%23q)'/%3E%3C/svg%3E")}
   .hm-news-in{position:relative;z-index:1;display:grid;grid-template-columns:1fr;gap:22px}
@@ -272,7 +248,7 @@ const trilhos = [
   .hm-cupom a{display:inline-flex;align-items:center;gap:8px;margin-top:12px;font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.5);padding-bottom:2px}
   .hm-cupom a svg{width:14px;height:14px}
 
-  /* ─── BUSCA OVERLAY ─── */
+  /* ─── BUSCA ─── */
   .hm-busca-scrim{position:fixed;inset:0;z-index:80;background:rgba(18,16,14,.62);backdrop-filter:blur(5px);opacity:0;transition:opacity .3s}
   .hm-busca-scrim[hidden]{display:none}
   .hm-busca-scrim.on{opacity:1}
@@ -301,7 +277,7 @@ const trilhos = [
   .hm-busca-vazio{padding:26px 16px;text-align:center;font-size:12.5px;color:var(--tinta2);line-height:1.6}
   .hm-busca-pe{padding:11px 16px;background:var(--perola);border-top:1px solid var(--linho);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta3);display:flex;gap:14px;flex-wrap:wrap}
 
-  /* ─── EXIT MODAL ─── */
+  /* ─── EXIT ─── */
   .hm-exit-scrim{position:fixed;inset:0;z-index:90;background:rgba(18,16,14,.66);backdrop-filter:blur(5px);opacity:0;transition:opacity .32s}
   .hm-exit-scrim[hidden]{display:none}
   .hm-exit-scrim.on{opacity:1}
@@ -312,8 +288,7 @@ const trilhos = [
   .hm-exit::-webkit-scrollbar-track{background:var(--areia)}
   .hm-exit::-webkit-scrollbar-thumb{background:var(--ouroclaro);border-radius:99px;border:2px solid var(--areia)}
   .hm-exit.on{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1)}
-  .hm-exit-topo{position:relative;padding:28px 22px 22px;color:#fff;text-align:center;
-    background:linear-gradient(130deg,#12100e,#3d3226 26%,var(--bronze) 62%,var(--ouro) 108%)}
+  .hm-exit-topo{position:relative;padding:28px 22px 22px;color:#fff;text-align:center;background:linear-gradient(130deg,#12100e,#3d3226 26%,var(--bronze) 62%,var(--ouro) 108%)}
   .hm-exit-topo::after{content:"";position:absolute;inset:0;opacity:.16;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='e'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23e)'/%3E%3C/svg%3E")}
   .hm-exit-x{position:absolute;z-index:2;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.34);
     background:rgba(255,255,255,.14);color:#fff;font-size:18px;line-height:1;cursor:pointer;transition:all .25s}
@@ -370,11 +345,10 @@ const trilhos = [
   .hm-foot a:hover{color:var(--ouro)}
   .hm-foot-base{max-width:1240px;margin:26px auto 0;padding-top:18px;border-top:1px solid rgba(230,211,174,.2);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:10.5px;color:rgba(255,255,255,.5)}
   @keyframes hmSobe{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-  .hm-entra{opacity:0;transform:translateY(20px);animation:hmSobe .9s cubic-bezier(.22,1,.36,1) forwards}
-  .hm-entra.d1{animation-delay:.1s}.hm-entra.d2{animation-delay:.2s}.hm-entra.d3{animation-delay:.3s}.hm-entra.d4{animation-delay:.4s}
+  .hm-entra{opacity:0;transform:translateY(14px);animation:hmSobe .9s cubic-bezier(.22,1,.36,1) forwards}
+  .hm-entra.d1{animation-delay:.15s}.hm-entra.d2{animation-delay:.3s}.hm-entra.d3{animation-delay:.45s}
 
   @media(min-width:600px){
-    .hm-stats{grid-template-columns:repeat(4,1fr)}
     .hm-card{flex-basis:210px}
     .hm-cols{grid-template-columns:repeat(2,1fr)}
     .hm-news-form{grid-template-columns:1fr 1fr}
@@ -382,16 +356,18 @@ const trilhos = [
     .hm-atelie-pilha{grid-template-columns:repeat(2,1fr)}
   }
   @media(min-width:900px){
-    .hm-hero{min-height:min(88vh,780px)}
-    .hm-hero-in{padding:56px 24px 46px}
-    .hm-hero-nav{right:24px;bottom:46px}
-    .hm-dots{left:24px;bottom:52px}
-    .hm-hero-tag{top:28px;right:24px}
-    .hm-stats{padding:40px 24px 8px}
+    .hm-hero{height:clamp(520px,88vh,900px)}
+    .hm-dots{left:26px;bottom:26px}
+    .hm-hero-nav{right:26px;bottom:22px}
+    .hm-hero-busca{top:24px;right:26px;width:46px;height:46px}
+    .hm-hero-cue{bottom:84px;width:44px;height:44px}
+    .hm-seta{width:46px;height:46px}
     .hm-sec{padding:52px 24px 8px}
+    .hm-sec--primeira{padding-top:64px}
     .hm-nav{display:flex}
     .hm-card{flex-basis:236px}
     .hm-cols{grid-template-columns:repeat(3,1fr)}
+    .hm-col,.hm-col-c{min-height:290px}
     .hm-atelie{padding:70px 0}
     .hm-atelie-in{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:52px;padding:0 24px;align-items:start}
     .hm-atelie-txt{position:sticky;top:calc(var(--hdr-h) + 40px)}
@@ -421,61 +397,64 @@ const trilhos = [
 <div class="hm-rel">
 <Header />
 
-<section class="hm-hero" id="hm-hero" data-hue="#c9a227" data-hue2="#b06a4f">
+<section class="hm-hero" id="hm-hero" data-hue="#c9a227" data-hue2="#b06a4f" aria-label="Vitrine Vivi Corrêa">
   <div class="hm-hero-palco" id="hm-palco">
-    {banners.length === 0 && <div class="hm-hero-mesh"></div>}
+    {banners.length === 0 && (
+      <>
+        <div class="hm-hero-mesh"></div>
+        <div class="hm-hero-marca"><img src={`${base}logo.png`} alt="Vivi Corrêa — joias autorais" /></div>
+      </>
+    )}
     {banners.map((u,i)=>(
-      <div class={`hm-slide ${i===0?'on':''}`} data-slide={i}><img src={u} alt={`Vivi Corrêa — destaque ${i+1}`} loading={i===0?'eager':'lazy'} /></div>
+      <div class={`hm-slide ${i===0?'on':''}`} data-slide={i}><img src={u} alt={`Vivi Corrêa — vitrine ${i+1}`} loading={i===0?'eager':'lazy'} /></div>
     ))}
   </div>
   <div class="hm-hero-veu"></div>
-  {unicas > 0 && <span class="hm-hero-tag"><i></i>{unicas} peça(s) única(s)</span>}
 
-  <div class="hm-hero-in">
-    <span class="hm-eyebrow hm-entra"><i></i>Joalheria artesanal · desde o desenho à mão</span>
-    <h1 class="hm-entra d1">Joias que <em>guardam</em> o gesto de quem fez</h1>
-    <p class="hm-entra d2">Anéis, brincos e colares autorais, trabalhados um a um no ateliê da Vivi Corrêa. Sem produção em série — cada peça carrega a marca do fogo, da lima e do tempo.</p>
-    <div class="hm-hero-acoes hm-entra d3">
-      <a href={`${base}colecoes`} class="hm-btn">
-        Explorar coleções
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
-      </a>
-      <a href={`${base}quem-somos`} class="hm-btn hm-btn-vidro">Conhecer o ateliê</a>
-    </div>
-    <div class="hm-hero-busca hm-entra d4" id="hm-abre-busca" role="button" tabindex="0" aria-label="Buscar peças">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-      <span>Buscar por anel, brinco, coleção…</span>
-      <kbd>/</kbd>
-    </div>
-  </div>
+  <button type="button" class="hm-hero-busca hm-entra d1" id="hm-abre-busca" aria-label="Buscar peças">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+  </button>
+
+  <a href={`#${primeiraAncora}`} class="hm-hero-cue hm-entra d3" aria-label="Rolar para as coleções">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M6 13l6 6 6-6"/></svg>
+  </a>
 
   {banners.length > 1 && (
     <>
-      <div class="hm-dots" id="hm-dots">{banners.map((_,i)=><button type="button" class={i===0?'on':''} data-dot={i} aria-label={`Banner ${i+1}`}></button>)}</div>
-      <div class="hm-hero-nav">
-        <button type="button" class="hm-seta" id="hm-prev" aria-label="Banner anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
-        <button type="button" class="hm-seta" id="hm-next" aria-label="Próximo banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></button>
+      <div class="hm-dots hm-entra d2" id="hm-dots">{banners.map((_,i)=><button type="button" class={i===0?'on':''} data-dot={i} aria-label={`Vitrine ${i+1}`}></button>)}</div>
+      <div class="hm-hero-nav hm-entra d2">
+        <button type="button" class="hm-seta" id="hm-prev" aria-label="Imagem anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
+        <button type="button" class="hm-seta" id="hm-next" aria-label="Próxima imagem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></button>
       </div>
+      <div class="hm-hero-prog" aria-hidden="true"><i id="hm-hero-prog"></i></div>
     </>
   )}
 </section>
 
-<div class="hm-faixa" aria-hidden="true">
-  <div class="hm-faixa-t" id="hm-faixa">
-    <span>Feito à mão no ateliê</span><span>Peças únicas e numeradas</span><span>Prata, ouro e pedras naturais</span><span>Embalagem para presente</span><span>Envio para todo o Brasil</span><span>Troca combinada em 7 dias</span>
-    <span>Feito à mão no ateliê</span><span>Peças únicas e numeradas</span><span>Prata, ouro e pedras naturais</span><span>Embalagem para presente</span><span>Envio para todo o Brasil</span><span>Troca combinada em 7 dias</span>
-  </div>
-</div>
+{colecoes.length > 0 && (
+  <section class="hm-sec hm-sec--primeira" id="sec-colecoes" style="--sh:var(--cobre)" data-hue="#b06a4f" data-hue2="#c9a227">
+    <div class="hm-sec-cab">
+      <div class="esq"><small><i></i>Séries do ateliê</small><h2>Coleções</h2></div>
+      <div class="dir"><a href={`${base}colecoes`} class="hm-ver">Ver todas</a></div>
+    </div>
+    <div class="hm-cols">
+      {colecoes.map(c=>(
+        <a class="hm-col" href={`${base}colecoes/${c.slug}`}>
+          <div class="hm-col-mos">{c.mosaico.map(u=><img src={u} alt={c.nome} loading="lazy" />)}</div>
+          <div class="hm-col-veu"></div>
+          <div class="hm-col-c">
+            <small>{c.qtd} {c.qtd===1?'peça':'peças'}</small>
+            <h3>{c.nome}</h3>
+            <span>Entrar na coleção <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+)}
 
-<div class="hm-stats">
-  <div class="hm-stat"><b data-conta={totalPecas}>0</b><span>Peças disponíveis</span></div>
-  <div class="hm-stat"><b data-conta={unicas}>0</b><span>Peças únicas</span></div>
-  <div class="hm-stat"><b data-conta={colecoes.length}>0</b><span>Coleções autorais</span></div>
-  <div class="hm-stat"><b data-conta="100" data-sufixo="%">0</b><span>Feito à mão</span></div>
-</div>
-
-{trilhos.map(t=>(
-  <section class="hm-sec" id={`sec-${t.id}`} style={`--sh:var(--${t.hue})`} data-hue={t.hue==='ouro'?'#c9a227':t.hue==='cobre'?'#b06a4f':t.hue==='lapis'?'#3d6b96':'#2f7d4f'} data-hue2={t.hue==='ouro'?'#b06a4f':t.hue==='cobre'?'#c9a227':t.hue==='lapis'?'#2f7d4f':'#c9a227'}>
+{trilhos.map((t,k)=>(
+  <section class={`hm-sec ${k===0 && !colecoes.length ? 'hm-sec--primeira':''}`} id={`sec-${t.id}`} style={`--sh:var(--${t.hue})`} data-hue={t.hue==='ouro'?'#c9a227':t.hue==='cobre'?'#b06a4f':t.hue==='lapis'?'#3d6b96':'#2f7d4f'} data-hue2={t.hue==='ouro'?'#b06a4f':t.hue==='cobre'?'#c9a227':t.hue==='lapis'?'#2f7d4f':'#c9a227'}>
     <div class="hm-sec-cab">
       <div class="esq"><small><i></i>{t.sub}</small><h2>{t.titulo}</h2></div>
       <div class="dir">
@@ -518,32 +497,8 @@ const trilhos = [
 ))}
 
 {produtos.length === 0 && (
-  <section class="hm-sec vis">
+  <section class="hm-sec hm-sec--primeira vis">
     <div class="hm-vazio-trilho">As peças estão sendo fotografadas e cadastradas no ateliê. Volte em instantes — ou fale com a Vivi pelo WhatsApp para ver o que já está pronta.</div>
-  </section>
-)}
-
-{colecoes.length > 0 && (
-  <section class="hm-sec" id="sec-colecoes" style="--sh:var(--cobre)" data-hue="#b06a4f" data-hue2="#c9a227">
-    <div class="hm-sec-cab">
-      <div class="esq"><small><i></i>Séries do ateliê</small><h2>Coleções</h2></div>
-      <div class="dir"><a href={`${base}colecoes`} class="hm-ver">Ver todas</a></div>
-    </div>
-    <div class="hm-cols">
-      {colecoes.map(c=>(
-        <a class="hm-col" href={`${base}colecoes/${c.slug}`}>
-          <div class="hm-col-mos">
-            {c.mosaico.map(u=><img src={u} alt={c.nome} loading="lazy" />)}
-          </div>
-          <div class="hm-col-veu"></div>
-          <div class="hm-col-c">
-            <small>{c.qtd} {c.qtd===1?'peça':'peças'}</small>
-            <h3>{c.nome}</h3>
-            <span>Entrar na coleção <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-          </div>
-        </a>
-      ))}
-    </div>
   </section>
 )}
 
@@ -642,7 +597,7 @@ const trilhos = [
 <div class="hm-busca" id="hm-busca" role="dialog" aria-modal="true" aria-label="Buscar peças">
   <div class="hm-busca-top">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-    <input type="search" id="hm-busca-in" placeholder="Anel, brinco, colar, Abrolhos…" aria-label="Termo de busca">
+    <input type="search" id="hm-busca-in" placeholder="Anel, brinco, colar, coleção…" aria-label="Termo de busca">
     <button type="button" class="hm-busca-x" id="hm-busca-x" aria-label="Fechar busca">×</button>
   </div>
   <div class="hm-busca-res" id="hm-busca-res"></div>
@@ -680,7 +635,7 @@ const trilhos = [
   </div>
 </div>
 
-<a class="hm-zap" id="hm-zap" href="https://wa.me/5571991064721?text=Ol%C3%A1%20Vivi!%20Vi%20suas%20joias%20no%20site%20e%20quero%20saber%20mais." target="_blank" rel="noopener" aria-label="Falar com a Vivi no WhatsApp">
+<a class="hm-zap" href="https://wa.me/5571991064721?text=Ol%C3%A1%20Vivi!%20Vi%20suas%20joias%20no%20site%20e%20quero%20saber%20mais." target="_blank" rel="noopener" aria-label="Falar com a Vivi no WhatsApp">
   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.5 0 1.47 1.07 2.9 1.22 3.1.15.2 2.1 3.2 5.1 4.49.71.31 1.27.49 1.7.63.72.23 1.37.2 1.88.12.58-.09 1.76-.72 2-1.42.25-.7.25-1.3.18-1.42-.08-.13-.28-.2-.58-.35zM12.05 21.8h-.01a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.9-9.88a9.82 9.82 0 016.99 2.9 9.82 9.82 0 012.9 7c0 5.45-4.44 9.88-9.9 9.88zm8.42-18.3A11.8 11.8 0 0012.05 0C5.5 0 .16 5.33.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.9 11.9 0 005.68 1.45h.01c6.55 0 11.89-5.33 11.89-11.89 0-3.18-1.24-6.16-3.47-8.41z"/></svg>
 </a>
 
@@ -701,11 +656,11 @@ const trilhos = [
   const slug = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
   const esc = s => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const fotos = b => { let a=[]; if(typeof b==='string'&&b.trim()){ try{const j=JSON.parse(b); a=Array.isArray(j)?j.filter(Boolean):[b];}catch(e){a=[b];} } else if(Array.isArray(b)) a=b.filter(Boolean); return a.length?a:[BASE+'logo.png']; };
+  const semMovimento = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let seed = { produtos:[], banners:[] };
   try { seed = JSON.parse($('hm-seed').textContent || '{}'); } catch(e){}
   let produtos = Array.isArray(seed.produtos) ? seed.produtos : [];
-  let banners = Array.isArray(seed.banners) ? seed.banners : [];
   let toastT = null, cupomAtual = null;
 
   /* ── sacola ── */
@@ -734,36 +689,58 @@ const trilhos = [
     b.animate?.([{transform:'scale(1)'},{transform:'scale(1.28)'},{transform:'scale(1)'}], {duration:340, easing:'cubic-bezier(.34,1.56,.64,1)'});
   });
 
-  /* ── carrossel ── */
-  let bi = 0, bTimer = null;
-  const slides = () => Array.from(document.querySelectorAll('.hm-slide'));
-  function irBanner(i){
-    const s = slides(); if (!s.length) return;
-    bi = (i + s.length) % s.length;
-    s.forEach((el,k)=>el.classList.toggle('on', k===bi));
-    document.querySelectorAll('[data-dot]').forEach((d,k)=>d.classList.toggle('on', k===bi));
+  /* ── carrossel: um único loop rAF ── */
+  const slides = Array.from(document.querySelectorAll('.hm-slide'));
+  const dots = Array.from(document.querySelectorAll('[data-dot]'));
+  const heroProg = $('hm-hero-prog');
+  const DUR = 6200;
+  let bi = 0, acc = 0, ultimo = 0, pausado = false, heroVisivel = true, rafHero = null;
+  function irBanner(i, resetar){
+    if (!slides.length) return;
+    bi = (i + slides.length) % slides.length;
+    slides.forEach((el,k)=>el.classList.toggle('on', k===bi));
+    dots.forEach((d,k)=>d.classList.toggle('on', k===bi));
+    if (resetar !== false) acc = 0;
   }
-  function autoBanner(){ clearInterval(bTimer); if (slides().length>1) bTimer = setInterval(()=>irBanner(bi+1), 6200); }
+  function loopHero(t){
+    if (!ultimo) ultimo = t;
+    const dt = Math.min(120, t - ultimo); ultimo = t;
+    if (slides.length > 1 && !pausado && heroVisivel && !document.hidden && !semMovimento()){
+      acc += dt;
+      if (acc >= DUR){ acc = 0; irBanner(bi+1, false); }
+    }
+    if (heroProg) heroProg.style.width = (slides.length>1 ? Math.min(100,(acc/DUR)*100) : 0) + '%';
+    rafHero = requestAnimationFrame(loopHero);
+  }
+  if (slides.length > 1 && !rafHero) rafHero = requestAnimationFrame(loopHero);
   const nx = $('hm-next'), pv = $('hm-prev');
-  if (nx) nx.addEventListener('click', ()=>{ irBanner(bi+1); autoBanner(); });
-  if (pv) pv.addEventListener('click', ()=>{ irBanner(bi-1); autoBanner(); });
-  document.querySelectorAll('[data-dot]').forEach(d=>d.addEventListener('click', ()=>{ irBanner(+d.dataset.dot); autoBanner(); }));
+  if (nx) nx.addEventListener('click', ()=>irBanner(bi+1));
+  if (pv) pv.addEventListener('click', ()=>irBanner(bi-1));
+  dots.forEach(d=>d.addEventListener('click', ()=>irBanner(+d.dataset.dot)));
   const hero = $('hm-hero');
-  hero.addEventListener('mouseenter', ()=>clearInterval(bTimer));
-  hero.addEventListener('mouseleave', autoBanner);
-  let hx0=null;
-  hero.addEventListener('touchstart', e=>{ hx0 = e.touches[0].clientX; }, {passive:true});
-  hero.addEventListener('touchend', e=>{ if(hx0===null) return; const dx = e.changedTouches[0].clientX - hx0; if(Math.abs(dx)>48){ irBanner(bi + (dx<0?1:-1)); autoBanner(); } hx0=null; }, {passive:true});
-  document.addEventListener('visibilitychange', ()=>{ document.hidden ? clearInterval(bTimer) : autoBanner(); });
-  autoBanner();
+  hero.addEventListener('mouseenter', ()=>{ pausado = true; });
+  hero.addEventListener('mouseleave', ()=>{ pausado = false; });
+  hero.addEventListener('focusin', ()=>{ pausado = true; });
+  hero.addEventListener('focusout', ()=>{ pausado = false; });
+  let hx0 = null, hy0 = null;
+  hero.addEventListener('touchstart', e=>{ hx0 = e.touches[0].clientX; hy0 = e.touches[0].clientY; pausado = true; }, {passive:true});
+  hero.addEventListener('touchend', e=>{
+    if (hx0 !== null){
+      const dx = e.changedTouches[0].clientX - hx0, dy = e.changedTouches[0].clientY - hy0;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy)) irBanner(bi + (dx<0?1:-1));
+    }
+    hx0 = hy0 = null; pausado = false;
+  }, {passive:true});
+  if (window.IntersectionObserver){
+    new IntersectionObserver(es=>es.forEach(x=>{ heroVisivel = x.isIntersecting; }), {threshold:.12}).observe(hero);
+  }
 
   /* ── trilhos ── */
   function estadoSetas(id){
     const r = $('rail-'+id); if(!r) return;
     const p = document.querySelector(`[data-rail-prev="${id}"]`), n = document.querySelector(`[data-rail-next="${id}"]`);
-    const fim = r.scrollLeft + r.clientWidth >= r.scrollWidth - 4;
     if (p) p.disabled = r.scrollLeft <= 4;
-    if (n) n.disabled = fim;
+    if (n) n.disabled = r.scrollLeft + r.clientWidth >= r.scrollWidth - 4;
   }
   function passo(id, dir){
     const r = $('rail-'+id); if(!r) return;
@@ -786,31 +763,19 @@ const trilhos = [
   });
   window.addEventListener('resize', ()=>document.querySelectorAll('[data-rail]').forEach(r=>estadoSetas(r.dataset.rail)));
 
-  /* ── reveal + hue + progresso + parallax + contadores ── */
-  const hueMap = { '#c9a227':'#c9a227' };
+  /* ── reveal, hue, progresso, parallax ── */
   if (window.IntersectionObserver){
     const io = new IntersectionObserver(es=>es.forEach(x=>{ if(x.isIntersecting){ x.target.classList.add('vis'); io.unobserve(x.target); } }), {threshold:.1});
     document.querySelectorAll('.hm-sec').forEach(s=>io.observe(s));
-    const ioH = new IntersectionObserver(es=>{
-      es.forEach(x=>{ if(x.isIntersecting && x.intersectionRatio>.28){
-        const h = x.target.dataset.hue, h2 = x.target.dataset.hue2;
-        if (h) document.body.style.setProperty('--hue', h);
-        if (h2) document.body.style.setProperty('--hue2', h2);
-      }});
-    }, {threshold:[.3,.6]});
+    const ioH = new IntersectionObserver(es=>es.forEach(x=>{
+      if (x.isIntersecting && x.intersectionRatio > .28){
+        if (x.target.dataset.hue) document.body.style.setProperty('--hue', x.target.dataset.hue);
+        if (x.target.dataset.hue2) document.body.style.setProperty('--hue2', x.target.dataset.hue2);
+      }
+    }), {threshold:[.3,.6]});
     document.querySelectorAll('[data-hue]').forEach(s=>ioH.observe(s));
-    const ioC = new IntersectionObserver(es=>es.forEach(x=>{
-      if(!x.isIntersecting) return; ioC.unobserve(x.target);
-      const el = x.target, alvo = parseInt(el.dataset.conta)||0, suf = el.dataset.sufixo||'';
-      const t0 = performance.now(), dur = 1300;
-      const tick = t => { const k = Math.min(1,(t-t0)/dur); el.textContent = Math.round(alvo*(1-Math.pow(1-k,3))) + suf; if(k<1) requestAnimationFrame(tick); };
-      requestAnimationFrame(tick);
-    }), {threshold:.5});
-    document.querySelectorAll('[data-conta]').forEach(el=>ioC.observe(el));
-  } else {
-    document.querySelectorAll('.hm-sec').forEach(s=>s.classList.add('vis'));
-    document.querySelectorAll('[data-conta]').forEach(el=>el.textContent = (el.dataset.conta||'0')+(el.dataset.sufixo||''));
-  }
+  } else document.querySelectorAll('.hm-sec').forEach(s=>s.classList.add('vis'));
+
   let rafP = null;
   function aoRolar(){
     if (rafP) return;
@@ -818,7 +783,7 @@ const trilhos = [
       rafP = null;
       const h = document.documentElement.scrollHeight - window.innerHeight;
       const prog = $('hm-prog'); if (prog) prog.style.width = (h>0 ? (window.scrollY/h)*100 : 0) + '%';
-      if (window.innerWidth >= 900 && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+      if (window.innerWidth >= 900 && !semMovimento()){
         document.querySelectorAll('[data-par]').forEach(f=>{
           const r = f.getBoundingClientRect();
           if (r.bottom < -200 || r.top > window.innerHeight + 200) return;
@@ -866,7 +831,6 @@ const trilhos = [
       }).join('');
   }
   $('hm-abre-busca').addEventListener('click', abrirBusca);
-  $('hm-abre-busca').addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); abrirBusca(); } });
   $('hm-busca-x').addEventListener('click', fecharBusca);
   $('hm-busca-scrim').addEventListener('click', fecharBusca);
   $('hm-busca-in').addEventListener('input', e=>renderBusca(e.target.value));
@@ -882,8 +846,13 @@ const trilhos = [
   });
   document.addEventListener('keydown', e=>{
     const digitando = /input|textarea|select/i.test(document.activeElement?.tagName||'');
-    if (e.key==='/' && !digitando){ e.preventDefault(); abrirBusca(); }
+    const modal = $('hm-busca').classList.contains('on') || $('hm-exit').classList.contains('on');
+    if (e.key==='/' && !digitando && !modal){ e.preventDefault(); abrirBusca(); }
     if (e.key==='Escape'){ fecharBusca(); fecharExit(); }
+    if (!digitando && !modal && slides.length>1 && heroVisivel){
+      if (e.key==='ArrowRight') irBanner(bi+1);
+      if (e.key==='ArrowLeft') irBanner(bi-1);
+    }
   });
 
   /* ── newsletter + cupom real ── */
@@ -925,8 +894,8 @@ const trilhos = [
     const btn = $('hm-news-btn'), msg = $('hm-news-msg');
     const nome = $('hm-news-nome'), mail = $('hm-news-email');
     nome.classList.remove('ruim'); mail.classList.remove('ruim');
-    if (nome.value.trim().length<2){ nome.classList.add('ruim'); nome.focus(); }
-    if (!emailOk(mail.value)){ mail.classList.add('ruim'); if(!nome.classList.contains('ruim')) mail.focus(); }
+    if (nome.value.trim().length<2) nome.classList.add('ruim');
+    if (!emailOk(mail.value)) mail.classList.add('ruim');
     if (nome.classList.contains('ruim')||mail.classList.contains('ruim')){ msg.className='hm-news-msg err'; msg.textContent='Confira seu nome e e-mail.'; return; }
     btn.disabled = true; btn.textContent = 'Gerando seu cupom…'; msg.className='hm-news-msg'; msg.textContent='';
     const r = await assinar(nome.value, mail.value);
@@ -992,7 +961,7 @@ const trilhos = [
   $('hm-exit-copy').addEventListener('click', e=>copiar(cupomAtual || $('hm-exit-cod').textContent, e.currentTarget));
   $('hm-exit-aplicar').addEventListener('click', ()=>{ guardarCupom(cupomAtual || $('hm-exit-cod').textContent); window.location.href = `${BASE}carrinho`; });
 
-  /* ── revalidação silenciosa dos dados ── */
+  /* ── revalidação silenciosa ── */
   function cardHTML(p){
     const fs = fotos(p.imagem_url), pr = (p.preco_centavos||0)/100;
     const est = (p.estoque===null||p.estoque===undefined) ? null : parseInt(p.estoque);
