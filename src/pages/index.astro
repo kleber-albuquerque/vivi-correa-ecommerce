@@ -1,255 +1,1040 @@
 ---
-import { createClient } from '@supabase/supabase-js';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
-import Captura from '../components/Captura.astro';
+const base = import.meta.env.BASE_URL;
 
-const supabase = createClient(
-  import.meta.env.PUBLIC_SUPABASE_URL,
-  import.meta.env.PUBLIC_SUPABASE_ANON_KEY
-);
+const slugify = (s) => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+const brl = (v) => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+const fotosDe = (bruto) => {
+  let a = [];
+  if (typeof bruto === 'string' && bruto.trim()){
+    try { const j = JSON.parse(bruto); a = Array.isArray(j) ? j.filter(Boolean) : [bruto]; } catch(e){ a = [bruto]; }
+  } else if (Array.isArray(bruto)) a = bruto.filter(Boolean);
+  return a.length ? a : [`${base}logo.png`];
+};
 
-const { data: config } = await supabase.from('configuracoes').select('valor').eq('chave', 'banner_home').single();
-let listaBanners = [];
-if (config?.valor) {
-    try {
-        listaBanners = JSON.parse(config.valor);
-        if (!Array.isArray(listaBanners)) listaBanners = [config.valor];
-    } catch {
-        listaBanners = [config.valor];
-    }
-}
+let produtos = [], banners = [], atelie = '';
+try {
+  const { createClient } = await import('@supabase/supabase-js');
+  const supabase = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
+  const { data: ps } = await supabase.from('produtos').select('id,nome,preco_centavos,imagem_url,categoria,colecao,destaque,estoque,numeracao').order('nome');
+  produtos = (ps||[]).filter(p=>p&&p.nome);
+  const { data: cfg } = await supabase.from('configuracoes').select('valor').eq('chave','banner_home').maybeSingle();
+  banners = fotosDe(cfg?.valor).filter(u => u && !u.endsWith('logo.png'));
+  const { data: cont } = await supabase.from('conteudo_site').select('*');
+  const linha = (cont||[]).find(r => JSON.stringify(r).toLowerCase().includes('quem'));
+  if (linha) atelie = String(linha.valor ?? linha.conteudo ?? linha.texto ?? '').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+} catch(e){ produtos = []; banners = []; atelie = ''; }
 
-const { data: destaques } = await supabase.from('produtos').select('*').eq('destaque', true);
-const { data: aneis } = await supabase.from('produtos').select('*').eq('categoria', 'Anéis');
-const { data: brincos } = await supabase.from('produtos').select('*').eq('categoria', 'Brincos');
-const { data: colares } = await supabase.from('produtos').select('*').eq('categoria', 'Colares');
+const destaques = produtos.filter(p=>p.destaque);
+const aneis    = produtos.filter(p=>String(p.categoria||'').toLowerCase().startsWith('an'));
+const brincos  = produtos.filter(p=>String(p.categoria||'').toLowerCase().startsWith('brin'));
+const colares  = produtos.filter(p=>String(p.categoria||'').toLowerCase().startsWith('col'));
+const mapaCol = new Map();
+produtos.forEach(p=>{ const c = String(p.colecao||'').trim(); if(!c) return; if(!mapaCol.has(c)) mapaCol.set(c,[]); mapaCol.get(c).push(p); });
+const colecoes = Array.from(mapaCol.entries()).map(([nome,ps])=>({ nome, slug:slugify(nome), qtd:ps.length, mosaico:ps.slice(0,3).map(p=>fotosDe(p.imagem_url)[0]) })).sort((a,b)=>b.qtd-a.qtd);
+const totalPecas = produtos.reduce((s,p)=> s + ((p.estoque===null||p.estoque===undefined) ? 1 : Math.max(0,parseInt(p.estoque)||0)), 0);
+const unicas = produtos.filter(p=>parseInt(p.estoque)===1).length;
+const atelieTexto = atelie && atelie.length > 90 ? atelie.slice(0,420).trim() + '…' : 'Cada joia nasce de um desenho à mão, passa pelo fogo, pela lima e pela paciência do polimento. Nada aqui é produzido em série: uma peça por vez, com o tempo que a matéria pede.';
+const atelierImgs = (destaques.length?destaques:produtos).slice(0,4).map(p=>fotosDe(p.imagem_url)[0]);
+
+const seed = { produtos, banners, base };
+const seedJSON = JSON.stringify(seed).replace(/</g,'\\u003c');
+
+const trilhos = [
+  { id:'destaques', titulo:'Escolhidas pela Vivi', sub:'Curadoria', hue:'ouro',   itens:destaques, link:`${base}colecoes`, linkTxt:'Ver tudo' },
+  { id:'aneis',     titulo:'Anéis',                sub:'No dedo',  hue:'cobre',  itens:aneis,     link:`${base}aneis`,    linkTxt:'Todos os anéis' },
+  { id:'brincos',   titulo:'Brincos',              sub:'No rosto', hue:'lapis',  itens:brincos,   link:`${base}brincos`,  linkTxt:'Todos os brincos' },
+  { id:'colares',   titulo:'Colares',              sub:'No peito', hue:'verde',  itens:colares,   link:`${base}colares`,  linkTxt:'Todos os colares' },
+].filter(t=>t.itens.length);
 ---
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vivi Correa - Joias Artesanais</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
-    <style is:global>
-        body { font-family: 'Montserrat', sans-serif; background-color: #faf9f7; }
-        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
-        .text-brand { color: #8B7355; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* Animação de Fade-in */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
-        }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Vivi Corrêa — Joias Autorais Feitas à Mão</title>
+<meta name="description" content="Joalheria artesanal de Vivi Corrêa. Anéis, brincos e colares autorais, feitos à mão um a um. Coleções Abrolhos, Origens e peças únicas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style is:global>
+  .hm{--alabastro:#faf9f7;--perola:#fff;--areia:#f4f0e8;--linho:#e7dfd1;--espresso:#241d16;--carvao:#12100e;
+      --tinta2:#6b5f4f;--tinta3:#9a8d7a;--bronze:#8B7355;--bronze-esc:#6f5940;--bronze2:#a68a64;
+      --ouro:#c9a227;--ouroclaro:#e6d3ae;--cobre:#b06a4f;--lapis:#3d6b96;--verde:#2f7d4f;--rubi:#a8203c;--ambar:#c8871b;
+      --hue:#c9a227;--hue2:#b06a4f;
+      margin:0;background:var(--alabastro);color:var(--espresso);font-family:'Montserrat',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
+  .hm *{box-sizing:border-box}
+  .hm h1,.hm h2,.hm h3,.hm h4{font-family:'Cormorant Garamond',serif;font-weight:500}
+  .hm-rel{position:relative;z-index:1}
+  .hm::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.055;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E")}
+  .hm-aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .hm-aurora i{position:absolute;display:block;border-radius:50%;filter:blur(78px);opacity:.36;transition:background 1.4s ease;animation:hmFlutua 30s ease-in-out infinite}
+  .hm-aurora i:nth-child(1){width:600px;height:600px;top:-230px;left:-170px;background:radial-gradient(circle,var(--hue),transparent 68%)}
+  .hm-aurora i:nth-child(2){width:520px;height:520px;top:34%;right:-200px;background:radial-gradient(circle,var(--hue2),transparent 68%);animation-delay:-11s}
+  .hm-aurora i:nth-child(3){width:460px;height:460px;bottom:-190px;left:24%;background:radial-gradient(circle,var(--hue),transparent 70%);opacity:.22;animation-delay:-21s}
+  @keyframes hmFlutua{0%,100%{transform:translate3d(0,0,0) scale(1)}34%{transform:translate3d(46px,-38px,0) scale(1.09)}67%{transform:translate3d(-34px,30px,0) scale(.94)}}
 
-        /* Efeito de hover nos botões */
-        .btn-primary {
-            transition: all 0.3s ease;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(139, 115, 85, 0.2);
-        }
-    </style>
+  .hm-progresso{position:fixed;left:0;right:0;top:var(--hdr-h);height:2px;z-index:49;background:transparent;pointer-events:none}
+  .hm-progresso i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--bronze-esc),var(--ouro) 42%,var(--cobre) 72%,var(--lapis));box-shadow:0 0 12px rgba(201,162,39,.6)}
+
+  /* ─── HERO ─── */
+  .hm-hero{position:relative;min-height:min(84vh,720px);display:flex;align-items:flex-end;overflow:hidden;background:var(--carvao)}
+  .hm-hero-palco{position:absolute;inset:0}
+  .hm-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.1s ease,transform 7s linear;transform:scale(1.06)}
+  .hm-slide.on{opacity:1;transform:scale(1)}
+  .hm-slide img{width:100%;height:100%;object-fit:cover;display:block}
+  .hm-hero-veu{position:absolute;inset:0;background:
+    linear-gradient(to top,rgba(18,16,14,.94) 0%,rgba(18,16,14,.7) 34%,rgba(18,16,14,.24) 64%,rgba(18,16,14,.5) 100%),
+    radial-gradient(120% 80% at 12% 92%,rgba(201,162,39,.3),transparent 58%),
+    radial-gradient(90% 70% at 92% 8%,rgba(176,106,79,.28),transparent 60%)}
+  .hm-hero-mesh{position:absolute;inset:0;background:
+    radial-gradient(70% 60% at 18% 22%,rgba(201,162,39,.4),transparent 62%),
+    radial-gradient(60% 60% at 82% 18%,rgba(176,106,79,.36),transparent 62%),
+    radial-gradient(80% 70% at 62% 92%,rgba(61,107,150,.3),transparent 64%),
+    linear-gradient(150deg,#12100e,#241d16 34%,#3d3226 62%,#6f5940 100%)}
+  .hm-hero-in{position:relative;z-index:2;width:100%;max-width:1240px;margin:0 auto;padding:34px 18px 30px;color:#fff}
+  .hm-eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:9.5px;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--ouroclaro);margin-bottom:14px}
+  .hm-eyebrow i{display:block;width:26px;height:1px;background:linear-gradient(90deg,var(--ouro),transparent)}
+  .hm-hero h1{margin:0;font-size:clamp(38px,10.5vw,86px);line-height:.96;letter-spacing:-.015em;max-width:16ch;
+    text-shadow:0 6px 34px rgba(0,0,0,.5)}
+  .hm-hero h1 em{font-style:italic;color:var(--ouroclaro)}
+  .hm-hero p{margin:16px 0 0;font-size:clamp(13px,3.4vw,15.5px);line-height:1.7;color:rgba(255,255,255,.84);max-width:46ch}
+  .hm-hero-acoes{display:flex;gap:11px;flex-wrap:wrap;margin-top:24px}
+  .hm-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:15px 24px;border:none;border-radius:99px;cursor:pointer;text-decoration:none;
+    font-family:inherit;font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#12100e;
+    background:linear-gradient(115deg,var(--ouroclaro),var(--ouro) 46%,#e8c65a 78%,var(--ouroclaro));background-size:190% 180%;
+    box-shadow:0 10px 30px rgba(201,162,39,.4);transition:background-position .55s,transform .22s,box-shadow .3s}
+  .hm-btn:hover{background-position:100% 0;transform:translateY(-2px);box-shadow:0 16px 38px rgba(201,162,39,.5)}
+  .hm-btn:active{transform:translateY(0) scale(.99)}
+  .hm-btn svg{width:15px;height:15px}
+  .hm-btn-vidro{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.34);backdrop-filter:blur(8px);box-shadow:none}
+  .hm-btn-vidro:hover{background:#fff;color:var(--espresso);border-color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.3)}
+  .hm-btn-escuro{background:linear-gradient(115deg,#12100e,#3d3226 30%,var(--bronze) 72%,var(--ouro));color:#fff;box-shadow:0 10px 26px rgba(36,29,22,.34)}
+  .hm-btn-linha{background:none;color:var(--tinta2);border:1.5px solid var(--linho);box-shadow:none}
+  .hm-btn-linha:hover{border-color:var(--bronze);color:var(--bronze);background:#f3ebdd;transform:none;box-shadow:none}
+  .hm-hero-busca{display:flex;align-items:center;gap:10px;margin-top:22px;max-width:430px;padding:6px 6px 6px 16px;border-radius:99px;
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(10px);cursor:text;transition:all .3s}
+  .hm-hero-busca:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.5)}
+  .hm-hero-busca svg{width:17px;height:17px;color:var(--ouroclaro);flex-shrink:0}
+  .hm-hero-busca span{flex:1;font-size:12.5px;color:rgba(255,255,255,.72)}
+  .hm-hero-busca kbd{font-family:inherit;font-size:9.5px;letter-spacing:.1em;padding:5px 9px;border-radius:99px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);color:#fff}
+  .hm-hero-nav{position:absolute;z-index:3;right:18px;bottom:30px;display:flex;align-items:center;gap:9px}
+  .hm-seta{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.32);background:rgba(18,16,14,.42);color:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(6px);transition:all .28s}
+  .hm-seta:hover{background:var(--ouro);border-color:var(--ouro);color:#12100e}
+  .hm-seta svg{width:17px;height:17px}
+  .hm-dots{position:absolute;z-index:3;left:18px;bottom:34px;display:flex;gap:7px}
+  .hm-dots button{width:8px;height:8px;padding:0;border:none;border-radius:99px;background:rgba(255,255,255,.4);cursor:pointer;transition:all .35s}
+  .hm-dots button.on{width:28px;background:var(--ouro)}
+  .hm-hero-tag{position:absolute;z-index:3;top:22px;right:18px;display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:99px;
+    background:rgba(168,32,60,.9);color:#fff;font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;box-shadow:0 6px 20px rgba(168,32,60,.45)}
+  .hm-hero-tag i{width:6px;height:6px;border-radius:50%;background:#fff;animation:hmPisca 1.8s ease-in-out infinite}
+  @keyframes hmPisca{0%,100%{opacity:1}50%{opacity:.3}}
+
+  /* ─── MARQUEE ─── */
+  .hm-faixa{background:var(--espresso);color:var(--ouroclaro);overflow:hidden;border-top:1px solid rgba(201,162,39,.24);border-bottom:1px solid rgba(201,162,39,.24)}
+  .hm-faixa-t{display:flex;gap:44px;width:max-content;padding:13px 0;animation:hmCorre 34s linear infinite}
+  .hm-faixa-t span{display:inline-flex;align-items:center;gap:11px;font-size:10px;letter-spacing:.26em;text-transform:uppercase;white-space:nowrap}
+  .hm-faixa-t span::after{content:"✦";color:var(--ouro);font-size:11px}
+  @keyframes hmCorre{to{transform:translateX(-50%)}}
+  .hm-faixa:hover .hm-faixa-t{animation-play-state:paused}
+
+  /* ─── STATS ─── */
+  .hm-stats{max-width:1240px;margin:0 auto;padding:30px 18px 6px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .hm-stat{background:var(--perola);border:1px solid var(--linho);border-radius:14px;padding:16px 15px;position:relative;overflow:hidden;box-shadow:0 2px 10px rgba(36,29,22,.05)}
+  .hm-stat::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--ouro),var(--cobre))}
+  .hm-stat:nth-child(2)::after{background:linear-gradient(180deg,var(--cobre),var(--rubi))}
+  .hm-stat:nth-child(3)::after{background:linear-gradient(180deg,var(--lapis),var(--verde))}
+  .hm-stat:nth-child(4)::after{background:linear-gradient(180deg,var(--verde),var(--ouro))}
+  .hm-stat b{display:block;font-family:'Cormorant Garamond',serif;font-size:clamp(28px,7vw,38px);font-weight:600;line-height:1}
+  .hm-stat span{display:block;margin-top:5px;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta3)}
+
+  /* ─── SEÇÕES / TRILHOS ─── */
+  .hm-sec{max-width:1240px;margin:0 auto;padding:38px 18px 8px;opacity:0;transform:translateY(26px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}
+  .hm-sec.vis{opacity:1;transform:none}
+  .hm-sec-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:16px}
+  .hm-sec-cab .esq{min-width:0}
+  .hm-sec-cab small{display:inline-flex;align-items:center;gap:8px;font-size:9.5px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:var(--sh,var(--bronze));margin-bottom:7px}
+  .hm-sec-cab small i{display:block;width:22px;height:1px;background:linear-gradient(90deg,var(--sh,var(--bronze)),transparent)}
+  .hm-sec-cab h2{margin:0;font-size:clamp(27px,6.6vw,40px);line-height:1.04}
+  .hm-sec-cab .dir{display:flex;align-items:center;gap:9px;flex-shrink:0}
+  .hm-ver{font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--sh,var(--bronze));text-decoration:none;white-space:nowrap;
+    border-bottom:1px solid transparent;padding-bottom:2px;transition:border-color .25s}
+  .hm-ver:hover{border-color:var(--sh,var(--bronze))}
+  .hm-nav{display:none;gap:7px}
+  .hm-nav button{width:36px;height:36px;border-radius:50%;border:1px solid var(--linho);background:var(--perola);color:var(--tinta2);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:all .25s}
+  .hm-nav button:hover:not(:disabled){border-color:var(--sh,var(--bronze));color:var(--sh,var(--bronze));background:#f3ebdd}
+  .hm-nav button:disabled{opacity:.3;cursor:not-allowed}
+  .hm-nav svg{width:15px;height:15px}
+  .hm-trilho{display:flex;gap:13px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:4px 2px 14px;
+    scrollbar-width:thin;scrollbar-color:var(--sh,var(--ouro)) var(--areia)}
+  .hm-trilho::-webkit-scrollbar{height:7px}
+  .hm-trilho::-webkit-scrollbar-track{background:var(--areia);border-radius:99px}
+  .hm-trilho::-webkit-scrollbar-thumb{background:var(--sh,var(--ouro));border-radius:99px;border:2px solid var(--areia)}
+  .hm-trilho::-webkit-scrollbar-thumb:hover{background:var(--bronze-esc)}
+  .hm-trilho.arrasta{cursor:grabbing;scroll-snap-type:none}
+  .hm-card{flex:0 0 168px;scroll-snap-align:start;background:var(--perola);border:1px solid var(--linho);border-radius:14px;overflow:hidden;
+    display:flex;flex-direction:column;text-decoration:none;color:inherit;position:relative;transition:transform .32s,box-shadow .32s,border-color .32s}
+  .hm-card:hover{transform:translateY(-5px);border-color:var(--sh,var(--ouro));box-shadow:0 16px 36px rgba(36,29,22,.14)}
+  .hm-card-f{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--areia)}
+  .hm-card-f img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:opacity .45s ease,transform .7s cubic-bezier(.22,1,.36,1)}
+  .hm-card-f img.alt{opacity:0}
+  .hm-card:hover .hm-card-f img.pri{opacity:0;transform:scale(1.06)}
+  .hm-card:hover .hm-card-f img.alt{opacity:1;transform:scale(1.06)}
+  .hm-card-selo{position:absolute;top:8px;left:8px;z-index:2;font-size:8.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;padding:5px 9px;border-radius:99px;color:#fff;
+    background:linear-gradient(135deg,#7d1226,var(--rubi) 62%,#d4405c);box-shadow:0 4px 13px rgba(168,32,60,.42)}
+  .hm-card-selo.ouro{background:linear-gradient(135deg,var(--bronze-esc),var(--bronze) 52%,var(--ouro));box-shadow:0 4px 13px rgba(201,162,39,.4)}
+  .hm-card-selo.off{background:linear-gradient(135deg,#2b241c,#6b5f4f)}
+  .hm-add{position:absolute;z-index:3;right:8px;bottom:8px;width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
+    background:rgba(255,255,255,.95);color:var(--bronze-esc);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 5px 16px rgba(36,29,22,.24);opacity:0;transform:translateY(8px) scale(.85);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+  .hm-card:hover .hm-add,.hm-card:focus-within .hm-add{opacity:1;transform:none}
+  .hm-add:hover{background:linear-gradient(135deg,var(--bronze-esc),var(--ouro));color:#fff}
+  .hm-add:disabled{opacity:.4;cursor:not-allowed}
+  .hm-add svg{width:17px;height:17px}
+  .hm-card-c{padding:11px 12px 13px;display:flex;flex-direction:column;gap:5px;flex:1}
+  .hm-card-col{font-size:8.5px;font-weight:600;letter-spacing:.17em;text-transform:uppercase;color:var(--sh,var(--bronze))}
+  .hm-card-n{margin:0;font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;line-height:1.18;overflow-wrap:anywhere}
+  .hm-card-p{margin-top:auto;font-size:13px;font-weight:600;color:var(--espresso)}
+  .hm-card-nf{font-size:9.5px;color:var(--tinta3)}
+  .hm-vazio-trilho{padding:24px;border:1px dashed var(--linho);border-radius:14px;font-size:12.5px;color:var(--tinta2);background:var(--perola)}
+
+  /* ─── COLEÇÕES ─── */
+  .hm-cols{display:grid;grid-template-columns:1fr;gap:14px}
+  .hm-col{position:relative;display:block;text-decoration:none;color:#fff;border-radius:16px;overflow:hidden;min-height:230px;
+    background:var(--carvao);box-shadow:0 12px 32px rgba(36,29,22,.16);transition:transform .35s,box-shadow .35s}
+  .hm-col:hover{transform:translateY(-5px);box-shadow:0 20px 46px rgba(36,29,22,.24)}
+  .hm-col-mos{position:absolute;inset:0;display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:2px}
+  .hm-col-mos img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .8s cubic-bezier(.22,1,.36,1)}
+  .hm-col-mos img:first-child{grid-row:1 / span 2}
+  .hm-col:hover .hm-col-mos img{transform:scale(1.07)}
+  .hm-col-veu{position:absolute;inset:0;background:linear-gradient(to top,rgba(18,16,14,.92) 0%,rgba(18,16,14,.5) 44%,rgba(18,16,14,.16) 100%),
+    radial-gradient(80% 60% at 8% 96%,rgba(201,162,39,.34),transparent 60%)}
+  .hm-col-c{position:relative;z-index:2;height:100%;min-height:230px;display:flex;flex-direction:column;justify-content:flex-end;padding:20px}
+  .hm-col-c small{font-size:9.5px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--ouroclaro);margin-bottom:6px}
+  .hm-col-c h3{margin:0;font-size:clamp(25px,6vw,34px);line-height:1.04}
+  .hm-col-c span{display:inline-flex;align-items:center;gap:8px;margin-top:11px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.86)}
+  .hm-col-c span svg{width:15px;height:15px;transition:transform .3s}
+  .hm-col:hover .hm-col-c span svg{transform:translateX(5px)}
+
+  /* ─── ATELIÊ ─── */
+  .hm-atelie{position:relative;margin-top:44px;padding:46px 0;background:
+    linear-gradient(160deg,#12100e 0%,#241d16 30%,#3d3226 62%,#5a4632 100%);color:#fff;overflow:hidden}
+  .hm-atelie::before{content:"";position:absolute;inset:0;opacity:.14;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23a)'/%3E%3C/svg%3E")}
+  .hm-atelie::after{content:"";position:absolute;width:520px;height:520px;top:-160px;right:-140px;border-radius:50%;filter:blur(70px);
+    background:radial-gradient(circle,rgba(201,162,39,.42),transparent 68%);pointer-events:none}
+  .hm-atelie-in{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 18px;display:grid;grid-template-columns:1fr;gap:26px}
+  .hm-atelie-txt small{display:inline-flex;align-items:center;gap:9px;font-size:9.5px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--ouroclaro);margin-bottom:13px}
+  .hm-atelie-txt small i{display:block;width:26px;height:1px;background:linear-gradient(90deg,var(--ouro),transparent)}
+  .hm-atelie-txt h2{margin:0 0 15px;font-size:clamp(30px,7.6vw,50px);line-height:1.02}
+  .hm-atelie-txt h2 em{font-style:italic;color:var(--ouroclaro)}
+  .hm-atelie-txt p{margin:0 0 14px;font-size:13.5px;line-height:1.85;color:rgba(255,255,255,.82);max-width:48ch}
+  .hm-atelie-assin{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:var(--ouroclaro);margin:18px 0 20px}
+  .hm-atelie-pilha{display:grid;gap:14px}
+  .hm-atelie-f{position:relative;border-radius:14px;overflow:hidden;border:1px solid rgba(230,211,174,.24);aspect-ratio:4/3;
+    box-shadow:0 16px 40px rgba(0,0,0,.4);will-change:transform}
+  .hm-atelie-f img{width:100%;height:100%;object-fit:cover;display:block}
+  .hm-atelie-f figcaption{position:absolute;left:0;right:0;bottom:0;padding:14px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:#fff;background:linear-gradient(to top,rgba(18,16,14,.88),transparent)}
+  .hm-atelie-num{position:absolute;top:12px;left:12px;font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--ouroclaro);text-shadow:0 3px 14px rgba(0,0,0,.6)}
+
+  /* ─── NEWSLETTER ─── */
+  .hm-news{max-width:1240px;margin:0 auto;padding:44px 18px 10px}
+  .hm-news-caixa{position:relative;overflow:hidden;border-radius:20px;padding:30px 22px;color:#fff;
+    background:linear-gradient(125deg,#12100e 0%,#1c2a38 26%,var(--lapis) 58%,var(--verde) 92%,#4a9a68 126%);
+    box-shadow:0 20px 50px rgba(61,107,150,.28)}
+  .hm-news-caixa::after{content:"";position:absolute;inset:0;opacity:.15;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130'%3E%3Cfilter id='q'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='2'/%3E%3C/filter%3E%3Crect width='130' height='130' filter='url(%23q)'/%3E%3C/svg%3E")}
+  .hm-news-in{position:relative;z-index:1;display:grid;grid-template-columns:1fr;gap:22px}
+  .hm-news small{display:inline-flex;align-items:center;gap:9px;font-size:9.5px;font-weight:600;letter-spacing:.26em;text-transform:uppercase;color:#bfe3cd;margin-bottom:11px}
+  .hm-news h2{margin:0 0 10px;font-size:clamp(27px,6.6vw,40px);line-height:1.04}
+  .hm-news p{margin:0;font-size:13px;line-height:1.7;color:rgba(255,255,255,.84);max-width:44ch}
+  .hm-news-form{display:grid;gap:10px}
+  .hm-news-form input{width:100%;padding:14px 16px;border-radius:11px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.14);
+    color:#fff;font-family:inherit;font-size:14px;backdrop-filter:blur(6px);transition:all .25s}
+  .hm-news-form input::placeholder{color:rgba(255,255,255,.66)}
+  .hm-news-form input:focus{outline:none;background:rgba(255,255,255,.22);border-color:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.16)}
+  .hm-news-form input.ruim{border-color:#ffb3c0;background:rgba(168,32,60,.28)}
+  .hm-news-form .hm-btn{width:100%;background:linear-gradient(115deg,#fff,#e6d3ae 52%,var(--ouro));color:#12100e}
+  .hm-news-msg{margin:2px 0 0;font-size:11.5px;line-height:1.55;min-height:17px;color:#dff3e6}
+  .hm-news-msg.err{color:#ffc9d3}
+  .hm-cupom{display:none;margin-top:14px;padding:16px;border-radius:14px;background:rgba(255,255,255,.15);border:1px dashed rgba(255,255,255,.5);backdrop-filter:blur(8px)}
+  .hm-cupom.on{display:block;animation:hmSobe .5s both}
+  .hm-cupom small{display:block;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#dff3e6;margin-bottom:8px}
+  .hm-cupom-cod{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .hm-cupom-cod b{font-family:'Cormorant Garamond',serif;font-size:27px;font-weight:600;letter-spacing:.06em;color:#fff}
+  .hm-cupom-cod button{border:1px solid rgba(255,255,255,.44);background:rgba(255,255,255,.16);color:#fff;font-family:inherit;font-size:9.5px;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;padding:9px 13px;border-radius:99px;cursor:pointer;transition:all .25s}
+  .hm-cupom-cod button:hover{background:#fff;color:var(--espresso);border-color:#fff}
+  .hm-cupom a{display:inline-flex;align-items:center;gap:8px;margin-top:12px;font-size:10.5px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.5);padding-bottom:2px}
+  .hm-cupom a svg{width:14px;height:14px}
+
+  /* ─── BUSCA OVERLAY ─── */
+  .hm-busca-scrim{position:fixed;inset:0;z-index:80;background:rgba(18,16,14,.62);backdrop-filter:blur(5px);opacity:0;transition:opacity .3s}
+  .hm-busca-scrim[hidden]{display:none}
+  .hm-busca-scrim.on{opacity:1}
+  .hm-busca{position:fixed;z-index:81;left:50%;top:calc(var(--hdr-h) + 14px);transform:translate(-50%,-16px);width:min(94vw,620px);max-height:min(72vh,560px);
+    display:flex;flex-direction:column;background:var(--alabastro);border:1px solid var(--linho);border-radius:18px;overflow:hidden;
+    box-shadow:0 26px 70px rgba(18,16,14,.4);opacity:0;visibility:hidden;transition:opacity .3s,transform .35s cubic-bezier(.22,1,.36,1),visibility .35s}
+  .hm-busca.on{opacity:1;visibility:visible;transform:translate(-50%,0)}
+  .hm-busca-top{display:flex;align-items:center;gap:11px;padding:15px 16px;background:var(--perola);border-bottom:1px solid var(--linho)}
+  .hm-busca-top svg{width:19px;height:19px;color:var(--bronze);flex-shrink:0}
+  .hm-busca-top input{flex:1;min-width:0;border:none;background:none;font-family:inherit;font-size:16px;color:var(--espresso)}
+  .hm-busca-top input:focus{outline:none}
+  .hm-busca-x{width:32px;height:32px;border:1px solid var(--linho);border-radius:50%;background:var(--alabastro);color:var(--tinta2);font-size:18px;line-height:1;cursor:pointer;flex-shrink:0;transition:all .25s}
+  .hm-busca-x:hover{background:var(--bronze);color:#fff;border-color:var(--bronze)}
+  .hm-busca-res{flex:1;overflow-y:auto;padding:8px;scrollbar-width:thin;scrollbar-color:var(--ouro) var(--areia)}
+  .hm-busca-res::-webkit-scrollbar{width:9px}
+  .hm-busca-res::-webkit-scrollbar-track{background:var(--areia)}
+  .hm-busca-res::-webkit-scrollbar-thumb{background:var(--ouroclaro);border-radius:99px;border:2px solid var(--areia)}
+  .hm-busca-res::-webkit-scrollbar-thumb:hover{background:var(--bronze)}
+  .hm-busca-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:11px;text-decoration:none;color:inherit;transition:background .2s}
+  .hm-busca-item:hover,.hm-busca-item.sel{background:#f3ebdd}
+  .hm-busca-item img{width:48px;height:58px;object-fit:cover;border-radius:8px;border:1px solid var(--linho);background:var(--areia);flex-shrink:0}
+  .hm-busca-item .t{flex:1;min-width:0}
+  .hm-busca-item .t b{display:block;font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;line-height:1.2}
+  .hm-busca-item .t span{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--bronze)}
+  .hm-busca-item .p{font-size:12.5px;font-weight:600;flex-shrink:0}
+  .hm-busca-vazio{padding:26px 16px;text-align:center;font-size:12.5px;color:var(--tinta2);line-height:1.6}
+  .hm-busca-pe{padding:11px 16px;background:var(--perola);border-top:1px solid var(--linho);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta3);display:flex;gap:14px;flex-wrap:wrap}
+
+  /* ─── EXIT MODAL ─── */
+  .hm-exit-scrim{position:fixed;inset:0;z-index:90;background:rgba(18,16,14,.66);backdrop-filter:blur(5px);opacity:0;transition:opacity .32s}
+  .hm-exit-scrim[hidden]{display:none}
+  .hm-exit-scrim.on{opacity:1}
+  .hm-exit{position:fixed;z-index:91;left:50%;top:50%;transform:translate(-50%,-46%) scale(.94);width:min(94vw,470px);max-height:88vh;overflow-y:auto;
+    background:var(--alabastro);border-radius:20px;box-shadow:0 30px 80px rgba(18,16,14,.46);opacity:0;visibility:hidden;
+    transition:opacity .34s,transform .42s cubic-bezier(.34,1.4,.64,1),visibility .42s;scrollbar-width:thin;scrollbar-color:var(--ouro) var(--areia)}
+  .hm-exit::-webkit-scrollbar{width:9px}
+  .hm-exit::-webkit-scrollbar-track{background:var(--areia)}
+  .hm-exit::-webkit-scrollbar-thumb{background:var(--ouroclaro);border-radius:99px;border:2px solid var(--areia)}
+  .hm-exit.on{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1)}
+  .hm-exit-topo{position:relative;padding:28px 22px 22px;color:#fff;text-align:center;
+    background:linear-gradient(130deg,#12100e,#3d3226 26%,var(--bronze) 62%,var(--ouro) 108%)}
+  .hm-exit-topo::after{content:"";position:absolute;inset:0;opacity:.16;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='e'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23e)'/%3E%3C/svg%3E")}
+  .hm-exit-x{position:absolute;z-index:2;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.34);
+    background:rgba(255,255,255,.14);color:#fff;font-size:18px;line-height:1;cursor:pointer;transition:all .25s}
+  .hm-exit-x:hover{background:#fff;color:var(--espresso)}
+  .hm-exit-off{position:relative;z-index:1;font-family:'Cormorant Garamond',serif;font-size:64px;font-weight:600;line-height:1;color:var(--ouroclaro)}
+  .hm-exit-topo p{position:relative;z-index:1;margin:6px 0 0;font-size:10px;letter-spacing:.26em;text-transform:uppercase}
+  .hm-exit-corpo{padding:22px}
+  .hm-exit-corpo h3{margin:0 0 8px;font-size:26px;text-align:center}
+  .hm-exit-corpo>p{margin:0 0 16px;font-size:12.5px;color:var(--tinta2);line-height:1.7;text-align:center}
+  .hm-exit-form{display:grid;gap:10px}
+  .hm-exit-form input{width:100%;padding:13px 15px;border:1.5px solid var(--linho);border-radius:11px;background:var(--perola);font-family:inherit;font-size:15px;color:var(--espresso);transition:all .25s}
+  .hm-exit-form input:focus{outline:none;border-color:var(--bronze);box-shadow:0 0 0 4px rgba(139,115,85,.14)}
+  .hm-exit-form input.ruim{border-color:var(--rubi);background:#fdf0ee}
+  .hm-exit-form .hm-btn{width:100%;background:linear-gradient(115deg,#12100e,#3d3226 26%,var(--bronze) 66%,var(--ouro));color:#fff}
+  .hm-exit-msg{margin:2px 0 0;font-size:11.5px;text-align:center;min-height:16px;color:var(--verde)}
+  .hm-exit-msg.err{color:var(--rubi)}
+  .hm-exit-nao{display:block;width:100%;margin-top:10px;border:none;background:none;font-family:inherit;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta3);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .hm-exit-nao:hover{color:var(--tinta2)}
+  .hm-exit-cupom{display:none;text-align:center}
+  .hm-exit-cupom.on{display:block;animation:hmSobe .45s both}
+  .hm-exit-cupom b{display:block;font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;color:var(--bronze-esc);letter-spacing:.05em;margin:6px 0 12px}
+  .hm-exit-cupom .linha{display:flex;gap:9px}
+  .hm-exit-cupom .linha button{flex:1;padding:13px;border-radius:11px;border:1.5px solid var(--linho);background:var(--perola);color:var(--tinta2);font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;cursor:pointer;transition:all .25s}
+  .hm-exit-cupom .linha button:hover{border-color:var(--bronze);color:var(--bronze);background:#f3ebdd}
+
+  /* ─── FLUTUANTES ─── */
+  .hm-zap{position:fixed;z-index:46;right:16px;bottom:calc(var(--nav-h) + 18px);width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#128c4a,#25d366 62%,#7ff0a8);color:#fff;text-decoration:none;box-shadow:0 10px 28px rgba(37,211,102,.44);transition:transform .28s,box-shadow .28s}
+  .hm-zap:hover{transform:scale(1.08) translateY(-2px);box-shadow:0 16px 36px rgba(37,211,102,.54)}
+  .hm-zap svg{width:26px;height:26px}
+  .hm-zap::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:1.5px solid rgba(37,211,102,.5);animation:hmPulso 2.4s ease-out infinite}
+  @keyframes hmPulso{from{transform:scale(.9);opacity:.85}to{transform:scale(1.28);opacity:0}}
+  .hm-toast{position:fixed;z-index:1400;left:14px;right:14px;bottom:calc(var(--nav-h) + 82px);display:flex;align-items:center;gap:11px;
+    background:var(--perola);border:1px solid var(--linho);border-left:4px solid var(--verde);border-radius:12px;padding:13px 15px;
+    box-shadow:0 16px 42px rgba(36,29,22,.24);transform:translateY(300px);transition:transform .45s cubic-bezier(.22,1,.36,1)}
+  .hm-toast.on{transform:none}
+  .hm-toast.err{border-left-color:var(--rubi)}
+  .hm-toast-i{width:25px;height:25px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,var(--bronze-esc),var(--ouro))}
+  .hm-toast-i svg{width:14px;height:14px}
+  .hm-toast p{margin:0;font-size:12.5px;font-weight:600;line-height:1.3}
+  .hm-toast small{display:block;font-size:10.5px;color:var(--tinta3);font-weight:400;margin-top:1px}
+  .hm-toast a{margin-left:auto;flex-shrink:0;font-size:9.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--bronze);text-decoration:none;
+    background:#f3ebdd;border:1px solid var(--ouroclaro);border-radius:8px;padding:8px 11px;transition:all .25s}
+  .hm-toast a:hover{background:var(--bronze);color:#fff;border-color:var(--bronze)}
+
+  /* ─── FOOTER ─── */
+  .hm-foot{margin-top:44px;background:var(--espresso);color:rgba(255,255,255,.72);padding:38px 18px calc(28px + env(safe-area-inset-bottom))}
+  .hm-foot-in{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:26px}
+  .hm-foot img{height:52px;width:auto;filter:brightness(0) invert(1);opacity:.92;margin-bottom:12px}
+  .hm-foot-marca p{margin:0;font-size:12.5px;line-height:1.75;max-width:36ch}
+  .hm-foot h4{margin:0 0 12px;font-size:19px;color:var(--ouroclaro)}
+  .hm-foot ul{margin:0;padding:0;list-style:none;display:grid;gap:9px}
+  .hm-foot a{color:rgba(255,255,255,.72);text-decoration:none;font-size:12px;transition:color .25s}
+  .hm-foot a:hover{color:var(--ouro)}
+  .hm-foot-base{max-width:1240px;margin:26px auto 0;padding-top:18px;border-top:1px solid rgba(230,211,174,.2);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:10.5px;color:rgba(255,255,255,.5)}
+  @keyframes hmSobe{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .hm-entra{opacity:0;transform:translateY(20px);animation:hmSobe .9s cubic-bezier(.22,1,.36,1) forwards}
+  .hm-entra.d1{animation-delay:.1s}.hm-entra.d2{animation-delay:.2s}.hm-entra.d3{animation-delay:.3s}.hm-entra.d4{animation-delay:.4s}
+
+  @media(min-width:600px){
+    .hm-stats{grid-template-columns:repeat(4,1fr)}
+    .hm-card{flex-basis:210px}
+    .hm-cols{grid-template-columns:repeat(2,1fr)}
+    .hm-news-form{grid-template-columns:1fr 1fr}
+    .hm-news-form .hm-btn,.hm-news-msg{grid-column:1 / -1}
+    .hm-atelie-pilha{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(min-width:900px){
+    .hm-hero{min-height:min(88vh,780px)}
+    .hm-hero-in{padding:56px 24px 46px}
+    .hm-hero-nav{right:24px;bottom:46px}
+    .hm-dots{left:24px;bottom:52px}
+    .hm-hero-tag{top:28px;right:24px}
+    .hm-stats{padding:40px 24px 8px}
+    .hm-sec{padding:52px 24px 8px}
+    .hm-nav{display:flex}
+    .hm-card{flex-basis:236px}
+    .hm-cols{grid-template-columns:repeat(3,1fr)}
+    .hm-atelie{padding:70px 0}
+    .hm-atelie-in{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:52px;padding:0 24px;align-items:start}
+    .hm-atelie-txt{position:sticky;top:calc(var(--hdr-h) + 40px)}
+    .hm-atelie-pilha{grid-template-columns:1fr;gap:22px}
+    .hm-atelie-f{aspect-ratio:16/11}
+    .hm-news{padding:60px 24px 10px}
+    .hm-news-caixa{padding:44px 40px}
+    .hm-news-in{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:44px;align-items:center}
+    .hm-foot{padding:56px 24px 32px}
+    .hm-foot-in{grid-template-columns:1.5fr 1fr 1fr 1fr;gap:36px}
+    .hm-zap{bottom:26px;right:26px;width:56px;height:56px}
+    .hm-toast{left:auto;right:26px;bottom:auto;top:calc(var(--hdr-h) + 18px);width:352px;transform:translateX(440px)}
+    .hm-toast.on{transform:none}
+  }
+  @media(max-width:899px){ .hm{padding-bottom:calc(var(--nav-h) + 8px)} }
+  @media(prefers-reduced-motion:reduce){
+    .hm *,.hm *::before,.hm *::after{animation:none!important;transition-duration:.01ms!important}
+    .hm-sec,.hm-entra{opacity:1;transform:none}
+    .hm-slide{transform:none}
+  }
+</style>
 </head>
-<body class="text-gray-800 antialiased">
+<body class="hm">
+<div class="hm-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="hm-progresso" aria-hidden="true"><i id="hm-prog"></i></div>
 
-    <Header />
+<div class="hm-rel">
+<Header />
 
-    {listaBanners.length > 0 && (
-        <section class="relative w-full bg-gray-200 overflow-hidden group">
-            <div id="carrossel" class="flex transition-transform duration-700 ease-in-out h-[200px] md:h-[300px] lg:h-[350px]">
-                {listaBanners.map((url, index) => (
-                    <div class="w-full flex-shrink-0 h-full">
-                        <img src={url} alt={`Banner ${index + 1}`} crossorigin="anonymous" class="w-full h-full object-cover object-center" />
-                    </div>
-                ))}
-            </div>
-            
-            {listaBanners.length > 1 && (
-                <>
-                    <button id="btn-prev" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow z-10">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                    </button>
-                    <button id="btn-next" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-800 p-2 rounded-full opacity-0 group-hover:opacity-100 transition shadow z-10">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </button>
-                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                        {listaBanners.map((_, index) => (
-                            <button class="w-2 h-2 rounded-full bg-white/50 indicator-dot transition" data-index={index}></button>
-                        ))}
-                    </div>
-                </>
-            )}
-        </section>
-    )}
+<section class="hm-hero" id="hm-hero" data-hue="#c9a227" data-hue2="#b06a4f">
+  <div class="hm-hero-palco" id="hm-palco">
+    {banners.length === 0 && <div class="hm-hero-mesh"></div>}
+    {banners.map((u,i)=>(
+      <div class={`hm-slide ${i===0?'on':''}`} data-slide={i}><img src={u} alt={`Vivi Corrêa — destaque ${i+1}`} loading={i===0?'eager':'lazy'} /></div>
+    ))}
+  </div>
+  <div class="hm-hero-veu"></div>
+  {unicas > 0 && <span class="hm-hero-tag"><i></i>{unicas} peça(s) única(s)</span>}
 
-    {destaques && destaques.length > 0 && (
-        <section class="py-16 md:py-24 relative group/section reveal">
-            <div class="container mx-auto px-6">
-                <div class="flex justify-between items-end mb-8">
-                    <div>
-                        <h2 class="text-3xl md:text-4xl text-gray-900 mb-2">Destaques</h2>
-                        <p class="text-gray-500 text-sm tracking-wide">Selecionados a dedo para você</p>
-                    </div>
-                </div>
-                <div class="relative">
-                    <button class="scroll-btn-prev absolute -left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-                    <div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 scroll-container">
-                        {destaques.map((produto) => (
-                            <a href={`${import.meta.env.BASE_URL}produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
-                                <div class="overflow-hidden rounded-sm mb-3 bg-gray-100 aspect-square relative"><img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" /></div>
-                                <div class="text-center">
-                                    <h3 class="text-sm text-gray-900 mb-1 leading-tight group-hover/card:text-brand transition-colors truncate">{produto.nome}</h3>
-                                    <p class="text-gray-600 font-medium text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}</p>
-                                </div>
-                            </a>
-                        ))}
-                    </div>
-                    <button class="scroll-btn-next absolute -right-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
-                </div>
-            </div>
-        </section>
-    )}
+  <div class="hm-hero-in">
+    <span class="hm-eyebrow hm-entra"><i></i>Joalheria artesanal · desde o desenho à mão</span>
+    <h1 class="hm-entra d1">Joias que <em>guardam</em> o gesto de quem fez</h1>
+    <p class="hm-entra d2">Anéis, brincos e colares autorais, trabalhados um a um no ateliê da Vivi Corrêa. Sem produção em série — cada peça carrega a marca do fogo, da lima e do tempo.</p>
+    <div class="hm-hero-acoes hm-entra d3">
+      <a href={`${base}colecoes`} class="hm-btn">
+        Explorar coleções
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <a href={`${base}quem-somos`} class="hm-btn hm-btn-vidro">Conhecer o ateliê</a>
+    </div>
+    <div class="hm-hero-busca hm-entra d4" id="hm-abre-busca" role="button" tabindex="0" aria-label="Buscar peças">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <span>Buscar por anel, brinco, coleção…</span>
+      <kbd>/</kbd>
+    </div>
+  </div>
 
-    {aneis && aneis.length > 0 && (
-        <section class="py-16 bg-white border-t border-gray-100 relative group/section reveal">
-            <div class="container mx-auto px-6">
-                <div class="flex justify-between items-end mb-8">
-                    <div><h2 class="text-3xl text-gray-900 mb-2">Anéis</h2><p class="text-gray-500 text-sm">Delicadeza que marca presença</p></div>
-                    <a href={`${import.meta.env.BASE_URL}aneis`} class="text-sm text-brand hover:underline font-semibold hidden md:block mb-2">Ver todos →</a>
-                </div>
-                <div class="relative">
-                    <button class="scroll-btn-prev absolute -left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-                    <div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 scroll-container">
-                        {aneis.map((produto) => (
-                            <a href={`${import.meta.env.BASE_URL}produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
-                                <div class="overflow-hidden rounded-sm mb-3 bg-gray-100 aspect-square relative"><img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" /></div>
-                                <div class="text-center"><h3 class="text-sm text-gray-900 mb-1 leading-tight group-hover/card:text-brand transition-colors truncate">{produto.nome}</h3><p class="text-gray-600 font-medium text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}</p></div>
-                            </a>
-                        ))}
-                    </div>
-                    <button class="scroll-btn-next absolute -right-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
-                </div>
-            </div>
-        </section>
-    )}
+  {banners.length > 1 && (
+    <>
+      <div class="hm-dots" id="hm-dots">{banners.map((_,i)=><button type="button" class={i===0?'on':''} data-dot={i} aria-label={`Banner ${i+1}`}></button>)}</div>
+      <div class="hm-hero-nav">
+        <button type="button" class="hm-seta" id="hm-prev" aria-label="Banner anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
+        <button type="button" class="hm-seta" id="hm-next" aria-label="Próximo banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+    </>
+  )}
+</section>
 
-    {brincos && brincos.length > 0 && (
-        <section class="py-16 relative group/section reveal">
-            <div class="container mx-auto px-6">
-                <div class="flex justify-between items-end mb-8">
-                    <div><h2 class="text-3xl text-gray-900 mb-2">Brincos</h2><p class="text-gray-500 text-sm">O brilho perfeito para o seu olhar</p></div>
-                    <a href={`${import.meta.env.BASE_URL}brincos`} class="text-sm text-brand hover:underline font-semibold hidden md:block mb-2">Ver todos →</a>
-                </div>
-                <div class="relative">
-                    <button class="scroll-btn-prev absolute -left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-                    <div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 scroll-container">
-                        {brincos.map((produto) => (
-                            <a href={`${import.meta.env.BASE_URL}produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
-                                <div class="overflow-hidden rounded-sm mb-3 bg-gray-100 aspect-square relative"><img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" /></div>
-                                <div class="text-center"><h3 class="text-sm text-gray-900 mb-1 leading-tight group-hover/card:text-brand transition-colors truncate">{produto.nome}</h3><p class="text-gray-600 font-medium text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}</p></div>
-                            </a>
-                        ))}
-                    </div>
-                    <button class="scroll-btn-next absolute -right-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
-                </div>
-            </div>
-        </section>
-    )}
+<div class="hm-faixa" aria-hidden="true">
+  <div class="hm-faixa-t" id="hm-faixa">
+    <span>Feito à mão no ateliê</span><span>Peças únicas e numeradas</span><span>Prata, ouro e pedras naturais</span><span>Embalagem para presente</span><span>Envio para todo o Brasil</span><span>Troca combinada em 7 dias</span>
+    <span>Feito à mão no ateliê</span><span>Peças únicas e numeradas</span><span>Prata, ouro e pedras naturais</span><span>Embalagem para presente</span><span>Envio para todo o Brasil</span><span>Troca combinada em 7 dias</span>
+  </div>
+</div>
 
-    {colares && colares.length > 0 && (
-        <section class="py-16 bg-white border-t border-gray-100 relative group/section reveal">
-            <div class="container mx-auto px-6">
-                <div class="flex justify-between items-end mb-8">
-                    <div><h2 class="text-3xl text-gray-900 mb-2">Colares</h2><p class="text-gray-500 text-sm">Para iluminar o seu colo</p></div>
-                    <a href={`${import.meta.env.BASE_URL}colares`} class="text-sm text-brand hover:underline font-semibold hidden md:block mb-2">Ver todos →</a>
-                </div>
-                <div class="relative">
-                    <button class="scroll-btn-prev absolute -left-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-                    <div class="flex gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory pb-4 scroll-container">
-                        {colares.map((produto) => (
-                            <a href={`${import.meta.env.BASE_URL}produto/${produto.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`} class="group/card cursor-pointer block flex-shrink-0 w-[160px] md:w-[calc(25%-12px)] snap-start">
-                                <div class="overflow-hidden rounded-sm mb-3 bg-gray-100 aspect-square relative"><img src={produto.imagem_url} alt={produto.nome} class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" /></div>
-                                <div class="text-center"><h3 class="text-sm text-gray-900 mb-1 leading-tight group-hover/card:text-brand transition-colors truncate">{produto.nome}</h3><p class="text-gray-600 font-medium text-sm">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}</p></div>
-                            </a>
-                        ))}
-                    </div>
-                    <button class="scroll-btn-next absolute -right-4 top-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-100 p-2 rounded-full opacity-0 group-hover/section:opacity-100 transition z-10 hidden md:block"><svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
-                </div>
-            </div>
-        </section>
-    )}
+<div class="hm-stats">
+  <div class="hm-stat"><b data-conta={totalPecas}>0</b><span>Peças disponíveis</span></div>
+  <div class="hm-stat"><b data-conta={unicas}>0</b><span>Peças únicas</span></div>
+  <div class="hm-stat"><b data-conta={colecoes.length}>0</b><span>Coleções autorais</span></div>
+  <div class="hm-stat"><b data-conta="100" data-sufixo="%">0</b><span>Feito à mão</span></div>
+</div>
 
-    <Captura />
-
-    <footer class="bg-gray-900 text-white py-16 text-center text-sm">
-        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Vivi Correa" class="h-12 mx-auto mb-6 brightness-0 invert opacity-50" />
-        <div class="flex justify-center gap-6 mb-8 text-gray-400">
-            <a href={`${import.meta.env.BASE_URL}quem-somos`} class="hover:text-white transition">Quem Somos</a>
-            <a href={`${import.meta.env.BASE_URL}ajuda`} class="hover:text-white transition">Ajuda & Políticas</a>
-            <a href="https://wa.me/5571991064721" target="_blank" class="hover:text-white transition">Fale Conosco</a>
+{trilhos.map(t=>(
+  <section class="hm-sec" id={`sec-${t.id}`} style={`--sh:var(--${t.hue})`} data-hue={t.hue==='ouro'?'#c9a227':t.hue==='cobre'?'#b06a4f':t.hue==='lapis'?'#3d6b96':'#2f7d4f'} data-hue2={t.hue==='ouro'?'#b06a4f':t.hue==='cobre'?'#c9a227':t.hue==='lapis'?'#2f7d4f':'#c9a227'}>
+    <div class="hm-sec-cab">
+      <div class="esq"><small><i></i>{t.sub}</small><h2>{t.titulo}</h2></div>
+      <div class="dir">
+        <a href={t.link} class="hm-ver">{t.linkTxt}</a>
+        <div class="hm-nav">
+          <button type="button" data-rail-prev={t.id} aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
+          <button type="button" data-rail-next={t.id} aria-label="Próximo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></button>
         </div>
-        <p class="text-gray-500 text-xs">&copy; 2026 Vivi Correa. Todos os direitos reservados.</p>
-        <p class="mt-2 text-xs text-gray-600">Desenvolvido por KA Agência Criativa</p>
-    </footer>
+      </div>
+    </div>
+    <div class="hm-trilho" id={`rail-${t.id}`} data-rail={t.id}>
+      {t.itens.map(p=>{
+        const fs = fotosDe(p.imagem_url);
+        const pr = (p.preco_centavos||0)/100;
+        const est = (p.estoque===null||p.estoque===undefined) ? null : parseInt(p.estoque);
+        const sem = est === 0;
+        return (
+          <a class="hm-card" href={`${base}produto/${slugify(p.nome)}`}>
+            <div class="hm-card-f">
+              {est === 1 && <span class="hm-card-selo">Única</span>}
+              {sem && <span class="hm-card-selo off">Esgotada</span>}
+              {p.destaque && est !== 1 && !sem && <span class="hm-card-selo ouro">Destaque</span>}
+              <img class="pri" src={fs[0]} alt={p.nome} loading="lazy" />
+              {fs[1] && <img class="alt" src={fs[1]} alt="" aria-hidden="true" loading="lazy" />}
+              <button type="button" class="hm-add" data-add={p.id} data-nome={p.nome} data-preco={pr} data-img={fs[0]} disabled={sem} aria-label={`Adicionar ${p.nome} à sacola`}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"/></svg>
+              </button>
+            </div>
+            <div class="hm-card-c">
+              {p.colecao && <span class="hm-card-col">{p.colecao}</span>}
+              <h3 class="hm-card-n">{p.nome}</h3>
+              {p.numeracao && <span class="hm-card-nf">Nº {p.numeracao}</span>}
+              <span class="hm-card-p">{brl(pr)}</span>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  </section>
+))}
 
-    <script>
-        // --- SCRIPT DO CARROSSEL ---
-        if (document.getElementById('carrossel')) {
-            let currentIndex = 0;
-            const carrossel = document.getElementById('carrossel');
-            const totalBanners = parseInt("{listaBanners.length}");
-            const dots = document.querySelectorAll('.indicator-dot');
-            if (totalBanners > 1) {
-                function updateCarrossel() {
-                    carrossel.style.transform = `translateX(-${currentIndex * 100}%)`;
-                    dots.forEach((dot, i) => {
-                        if (i === currentIndex) dot.classList.add('bg-white', 'w-4');
-                        else dot.classList.remove('bg-white', 'w-4');
-                        if (i === currentIndex) dot.classList.remove('bg-white/50');
-                        else dot.classList.add('bg-white/50');
-                    });
-                }
-                setInterval(() => { currentIndex = (currentIndex + 1) % totalBanners; updateCarrossel(); }, 5000);
-                document.getElementById('btn-next')?.addEventListener('click', () => { currentIndex = (currentIndex + 1) % totalBanners; updateCarrossel(); });
-                document.getElementById('btn-prev')?.addEventListener('click', () => { currentIndex = (currentIndex - 1 + totalBanners) % totalBanners; updateCarrossel(); });
-                updateCarrossel();
-            }
-        }
+{produtos.length === 0 && (
+  <section class="hm-sec vis">
+    <div class="hm-vazio-trilho">As peças estão sendo fotografadas e cadastradas no ateliê. Volte em instantes — ou fale com a Vivi pelo WhatsApp para ver o que já está pronta.</div>
+  </section>
+)}
 
-        // --- SCRIPT DAS SETAS DE PRODUTOS ---
-        document.querySelectorAll('.group\\/section').forEach(secao => {
-            const container = secao.querySelector('.scroll-container');
-            const btnPrev = secao.querySelector('.scroll-btn-prev');
-            const btnNext = secao.querySelector('.scroll-btn-next');
-            if (btnPrev && btnNext && container) {
-                btnPrev.addEventListener('click', () => container.scrollBy({ left: -300, behavior: 'smooth' }));
-                btnNext.addEventListener('click', () => container.scrollBy({ left: 300, behavior: 'smooth' }));
-            }
+{colecoes.length > 0 && (
+  <section class="hm-sec" id="sec-colecoes" style="--sh:var(--cobre)" data-hue="#b06a4f" data-hue2="#c9a227">
+    <div class="hm-sec-cab">
+      <div class="esq"><small><i></i>Séries do ateliê</small><h2>Coleções</h2></div>
+      <div class="dir"><a href={`${base}colecoes`} class="hm-ver">Ver todas</a></div>
+    </div>
+    <div class="hm-cols">
+      {colecoes.map(c=>(
+        <a class="hm-col" href={`${base}colecoes/${c.slug}`}>
+          <div class="hm-col-mos">
+            {c.mosaico.map(u=><img src={u} alt={c.nome} loading="lazy" />)}
+          </div>
+          <div class="hm-col-veu"></div>
+          <div class="hm-col-c">
+            <small>{c.qtd} {c.qtd===1?'peça':'peças'}</small>
+            <h3>{c.nome}</h3>
+            <span>Entrar na coleção <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+)}
+
+<section class="hm-atelie" id="sec-atelie" data-hue="#c9a227" data-hue2="#6f5940">
+  <div class="hm-atelie-in">
+    <div class="hm-atelie-txt">
+      <small><i></i>O ateliê</small>
+      <h2>Uma peça por vez, <em>com o tempo que a matéria pede</em></h2>
+      <p>{atelieTexto}</p>
+      <p>O que você leva não é um item de estoque: é o resultado de um desenho, de uma cera esculpida, de um metal que cedeu ao fogo e voltou a ser polido até encontrar a luz.</p>
+      <p class="hm-atelie-assin">— Vivi Corrêa</p>
+      <a href={`${base}quem-somos`} class="hm-btn">Ler a história completa</a>
+    </div>
+    <div class="hm-atelie-pilha" id="hm-pilha">
+      {(atelierImgs.length ? atelierImgs : [`${base}logo.png`]).map((u,i)=>(
+        <figure class="hm-atelie-f" data-par={i}>
+          <img src={u} alt={`Ateliê Vivi Corrêa — etapa ${i+1}`} loading="lazy" />
+          <span class="hm-atelie-num">0{i+1}</span>
+          <figcaption>{['O desenho','A cera','O metal','O polimento'][i] || 'O ateliê'}</figcaption>
+        </figure>
+      ))}
+    </div>
+  </div>
+</section>
+
+<section class="hm-news" id="sec-news" data-hue="#3d6b96" data-hue2="#2f7d4f">
+  <div class="hm-news-caixa">
+    <div class="hm-news-in">
+      <div>
+        <small>✦ Carta do ateliê</small>
+        <h2>Ganhe 10% na primeira peça</h2>
+        <p>Receba o aviso de cada peça nova antes de ela entrar na loja — e um cupom de 10% para usar na sua primeira compra. Sem spam: só joias e notícias do ateliê.</p>
+      </div>
+      <div>
+        <form class="hm-news-form" id="hm-news-form" novalidate>
+          <input type="text" id="hm-news-nome" placeholder="Seu nome" autocomplete="name" aria-label="Seu nome">
+          <input type="email" id="hm-news-email" placeholder="seu@email.com" autocomplete="email" aria-label="Seu e-mail">
+          <button type="submit" class="hm-btn" id="hm-news-btn">Quero meu cupom de 10%</button>
+          <p class="hm-news-msg" id="hm-news-msg"></p>
+        </form>
+        <div class="hm-cupom" id="hm-cupom">
+          <small>Seu cupom · 10% de desconto</small>
+          <div class="hm-cupom-cod">
+            <b id="hm-cupom-cod">VIVI10</b>
+            <button type="button" id="hm-cupom-copy">Copiar</button>
+            <button type="button" id="hm-cupom-aplicar">Aplicar na sacola</button>
+          </div>
+          <a href={`${base}carrinho`}>Ir para a sacola <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="hm-foot">
+  <div class="hm-foot-in">
+    <div class="hm-foot-marca">
+      <img src={`${base}logo.png`} alt="Vivi Corrêa" />
+      <p>Joalheria artesanal e autoral. Cada peça é desenhada, fundida e polida à mão no ateliê da Vivi Corrêa.</p>
+    </div>
+    <div>
+      <h4>Loja</h4>
+      <ul>
+        <li><a href={`${base}aneis`}>Anéis</a></li>
+        <li><a href={`${base}brincos`}>Brincos</a></li>
+        <li><a href={`${base}colares`}>Colares</a></li>
+        <li><a href={`${base}colecoes`}>Coleções</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Ateliê</h4>
+      <ul>
+        <li><a href={`${base}quem-somos`}>Quem somos</a></li>
+        <li><a href={`${base}ajuda`}>Ajuda e políticas</a></li>
+        <li><a href={`${base}busca`}>Buscar peças</a></li>
+        <li><a href={`${base}carrinho`}>Minha sacola</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Falar com a Vivi</h4>
+      <ul>
+        <li><a href="https://wa.me/5571991064721" target="_blank" rel="noopener">WhatsApp do ateliê</a></li>
+        <li><a href={`${base}ajuda`}>Trocas e prazos</a></li>
+        <li><a href={`${base}ajuda`}>Cuidados com a joia</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="hm-foot-base">
+    <span>&copy; 2026 Vivi Corrêa · Todos os direitos reservados</span>
+    <span>Desenvolvido por KA Agência Criativa</span>
+  </div>
+</footer>
+</div>
+
+<div class="hm-busca-scrim" id="hm-busca-scrim" hidden></div>
+<div class="hm-busca" id="hm-busca" role="dialog" aria-modal="true" aria-label="Buscar peças">
+  <div class="hm-busca-top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    <input type="search" id="hm-busca-in" placeholder="Anel, brinco, colar, Abrolhos…" aria-label="Termo de busca">
+    <button type="button" class="hm-busca-x" id="hm-busca-x" aria-label="Fechar busca">×</button>
+  </div>
+  <div class="hm-busca-res" id="hm-busca-res"></div>
+  <div class="hm-busca-pe"><span>↑ ↓ navegar</span><span>Enter abrir</span><span>Esc fechar</span></div>
+</div>
+
+<div class="hm-exit-scrim" id="hm-exit-scrim" hidden></div>
+<div class="hm-exit" id="hm-exit" role="dialog" aria-modal="true" aria-label="Cupom de 10%">
+  <div class="hm-exit-topo">
+    <button type="button" class="hm-exit-x" id="hm-exit-x" aria-label="Fechar">×</button>
+    <div class="hm-exit-off">10%</div>
+    <p>de desconto na primeira peça</p>
+  </div>
+  <div class="hm-exit-corpo">
+    <div id="hm-exit-form-wrap">
+      <h3>Antes de ir…</h3>
+      <p>Deixe seu e-mail e leve um cupom de 10% para a sua primeira joia. Você também passa a saber das peças novas antes de todo mundo.</p>
+      <form class="hm-exit-form" id="hm-exit-form" novalidate>
+        <input type="text" id="hm-exit-nome" placeholder="Seu nome" autocomplete="name" aria-label="Seu nome">
+        <input type="email" id="hm-exit-email" placeholder="seu@email.com" autocomplete="email" aria-label="Seu e-mail">
+        <button type="submit" class="hm-btn" id="hm-exit-btn">Liberar meu cupom</button>
+        <p class="hm-exit-msg" id="hm-exit-msg"></p>
+      </form>
+      <button type="button" class="hm-exit-nao" id="hm-exit-nao">Não quero desconto agora</button>
+    </div>
+    <div class="hm-exit-cupom" id="hm-exit-cupom">
+      <h3>Cupom liberado ✦</h3>
+      <p>Use este código na sacola. Ele já fica guardado neste aparelho.</p>
+      <b id="hm-exit-cod">VIVI10</b>
+      <div class="linha">
+        <button type="button" id="hm-exit-copy">Copiar código</button>
+        <button type="button" id="hm-exit-aplicar">Aplicar e ir à sacola</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a class="hm-zap" id="hm-zap" href="https://wa.me/5571991064721?text=Ol%C3%A1%20Vivi!%20Vi%20suas%20joias%20no%20site%20e%20quero%20saber%20mais." target="_blank" rel="noopener" aria-label="Falar com a Vivi no WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.5 0 1.47 1.07 2.9 1.22 3.1.15.2 2.1 3.2 5.1 4.49.71.31 1.27.49 1.7.63.72.23 1.37.2 1.88.12.58-.09 1.76-.72 2-1.42.25-.7.25-1.3.18-1.42-.08-.13-.28-.2-.58-.35zM12.05 21.8h-.01a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.9-9.88a9.82 9.82 0 016.99 2.9 9.82 9.82 0 012.9 7c0 5.45-4.44 9.88-9.9 9.88zm8.42-18.3A11.8 11.8 0 0012.05 0C5.5 0 .16 5.33.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.9 11.9 0 005.68 1.45h.01c6.55 0 11.89-5.33 11.89-11.89 0-3.18-1.24-6.16-3.47-8.41z"/></svg>
+</a>
+
+<div class="hm-toast" id="hm-toast" role="status" aria-live="polite">
+  <span class="hm-toast-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></span>
+  <div><p id="hm-toast-t">Peça na sacola</p><small id="hm-toast-s"></small></div>
+  <a href={`${base}carrinho`}>Ver sacola</a>
+</div>
+
+<script id="hm-seed" type="application/json" set:html={seedJSON}></script>
+
+<script>
+  import { createClient } from '@supabase/supabase-js';
+  const supabase = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
+  const $ = id => document.getElementById(id);
+  const BASE = import.meta.env.BASE_URL;
+  const brl = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+  const slug = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  const esc = s => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fotos = b => { let a=[]; if(typeof b==='string'&&b.trim()){ try{const j=JSON.parse(b); a=Array.isArray(j)?j.filter(Boolean):[b];}catch(e){a=[b];} } else if(Array.isArray(b)) a=b.filter(Boolean); return a.length?a:[BASE+'logo.png']; };
+
+  let seed = { produtos:[], banners:[] };
+  try { seed = JSON.parse($('hm-seed').textContent || '{}'); } catch(e){}
+  let produtos = Array.isArray(seed.produtos) ? seed.produtos : [];
+  let banners = Array.isArray(seed.banners) ? seed.banners : [];
+  let toastT = null, cupomAtual = null;
+
+  /* ── sacola ── */
+  const lerCart = () => { try { const v = JSON.parse(localStorage.getItem('carrinho_vivi')); return Array.isArray(v)?v:[]; } catch(e){ return []; } };
+  function toast(t, s, err){
+    $('hm-toast-t').textContent = t; $('hm-toast-s').textContent = s || '';
+    $('hm-toast').classList.toggle('err', !!err); $('hm-toast').classList.add('on');
+    clearTimeout(toastT); toastT = setTimeout(()=>$('hm-toast').classList.remove('on'), 4200);
+  }
+  function addSacola(p){
+    const c = lerCart();
+    const ex = c.find(i=>String(i.id)===String(p.id));
+    if (ex) ex.quantidade = (parseInt(ex.quantidade)||0)+1;
+    else c.push({ id:p.id, nome:p.nome, preco:p.preco, imagem:p.img, quantidade:1 });
+    try { localStorage.setItem('carrinho_vivi', JSON.stringify(c)); } catch(e){}
+    let sel = []; try { const v = JSON.parse(localStorage.getItem('selecao_vivi')); sel = Array.isArray(v)?v:[]; } catch(e){}
+    if (sel.length && !sel.map(String).includes(String(p.id))){ sel.push(String(p.id)); try{ localStorage.setItem('selecao_vivi', JSON.stringify(sel)); }catch(e){} }
+    window.dispatchEvent(new CustomEvent('carrinho-atualizado'));
+    toast('Peça na sua sacola', p.nome);
+  }
+  document.addEventListener('click', e=>{
+    const b = e.target.closest('[data-add]');
+    if (!b || b.disabled) return;
+    e.preventDefault(); e.stopPropagation();
+    addSacola({ id:b.dataset.add, nome:b.dataset.nome, preco:parseFloat(b.dataset.preco)||0, img:b.dataset.img });
+    b.animate?.([{transform:'scale(1)'},{transform:'scale(1.28)'},{transform:'scale(1)'}], {duration:340, easing:'cubic-bezier(.34,1.56,.64,1)'});
+  });
+
+  /* ── carrossel ── */
+  let bi = 0, bTimer = null;
+  const slides = () => Array.from(document.querySelectorAll('.hm-slide'));
+  function irBanner(i){
+    const s = slides(); if (!s.length) return;
+    bi = (i + s.length) % s.length;
+    s.forEach((el,k)=>el.classList.toggle('on', k===bi));
+    document.querySelectorAll('[data-dot]').forEach((d,k)=>d.classList.toggle('on', k===bi));
+  }
+  function autoBanner(){ clearInterval(bTimer); if (slides().length>1) bTimer = setInterval(()=>irBanner(bi+1), 6200); }
+  const nx = $('hm-next'), pv = $('hm-prev');
+  if (nx) nx.addEventListener('click', ()=>{ irBanner(bi+1); autoBanner(); });
+  if (pv) pv.addEventListener('click', ()=>{ irBanner(bi-1); autoBanner(); });
+  document.querySelectorAll('[data-dot]').forEach(d=>d.addEventListener('click', ()=>{ irBanner(+d.dataset.dot); autoBanner(); }));
+  const hero = $('hm-hero');
+  hero.addEventListener('mouseenter', ()=>clearInterval(bTimer));
+  hero.addEventListener('mouseleave', autoBanner);
+  let hx0=null;
+  hero.addEventListener('touchstart', e=>{ hx0 = e.touches[0].clientX; }, {passive:true});
+  hero.addEventListener('touchend', e=>{ if(hx0===null) return; const dx = e.changedTouches[0].clientX - hx0; if(Math.abs(dx)>48){ irBanner(bi + (dx<0?1:-1)); autoBanner(); } hx0=null; }, {passive:true});
+  document.addEventListener('visibilitychange', ()=>{ document.hidden ? clearInterval(bTimer) : autoBanner(); });
+  autoBanner();
+
+  /* ── trilhos ── */
+  function estadoSetas(id){
+    const r = $('rail-'+id); if(!r) return;
+    const p = document.querySelector(`[data-rail-prev="${id}"]`), n = document.querySelector(`[data-rail-next="${id}"]`);
+    const fim = r.scrollLeft + r.clientWidth >= r.scrollWidth - 4;
+    if (p) p.disabled = r.scrollLeft <= 4;
+    if (n) n.disabled = fim;
+  }
+  function passo(id, dir){
+    const r = $('rail-'+id); if(!r) return;
+    const card = r.querySelector('.hm-card');
+    const w = card ? card.getBoundingClientRect().width + 13 : 240;
+    r.scrollBy({ left: dir * Math.max(w, r.clientWidth*0.7), behavior:'smooth' });
+  }
+  document.querySelectorAll('[data-rail-next]').forEach(b=>b.addEventListener('click', ()=>passo(b.dataset.railNext, 1)));
+  document.querySelectorAll('[data-rail-prev]').forEach(b=>b.addEventListener('click', ()=>passo(b.dataset.railPrev, -1)));
+  document.querySelectorAll('[data-rail]').forEach(r=>{
+    const id = r.dataset.rail;
+    estadoSetas(id);
+    r.addEventListener('scroll', ()=>estadoSetas(id), {passive:true});
+    let down=false, sx=0, sl=0, moveu=false;
+    r.addEventListener('pointerdown', e=>{ if(e.pointerType!=='mouse'||e.target.closest('[data-add]')) return; down=true; moveu=false; sx=e.clientX; sl=r.scrollLeft; r.classList.add('arrasta'); });
+    r.addEventListener('pointermove', e=>{ if(!down) return; const dx=e.clientX-sx; if(Math.abs(dx)>4) moveu=true; r.scrollLeft = sl-dx; });
+    const solta = ()=>{ down=false; r.classList.remove('arrasta'); };
+    r.addEventListener('pointerup', solta); r.addEventListener('pointerleave', solta); r.addEventListener('pointercancel', solta);
+    r.addEventListener('click', e=>{ if(moveu){ e.preventDefault(); e.stopPropagation(); moveu=false; } }, true);
+  });
+  window.addEventListener('resize', ()=>document.querySelectorAll('[data-rail]').forEach(r=>estadoSetas(r.dataset.rail)));
+
+  /* ── reveal + hue + progresso + parallax + contadores ── */
+  const hueMap = { '#c9a227':'#c9a227' };
+  if (window.IntersectionObserver){
+    const io = new IntersectionObserver(es=>es.forEach(x=>{ if(x.isIntersecting){ x.target.classList.add('vis'); io.unobserve(x.target); } }), {threshold:.1});
+    document.querySelectorAll('.hm-sec').forEach(s=>io.observe(s));
+    const ioH = new IntersectionObserver(es=>{
+      es.forEach(x=>{ if(x.isIntersecting && x.intersectionRatio>.28){
+        const h = x.target.dataset.hue, h2 = x.target.dataset.hue2;
+        if (h) document.body.style.setProperty('--hue', h);
+        if (h2) document.body.style.setProperty('--hue2', h2);
+      }});
+    }, {threshold:[.3,.6]});
+    document.querySelectorAll('[data-hue]').forEach(s=>ioH.observe(s));
+    const ioC = new IntersectionObserver(es=>es.forEach(x=>{
+      if(!x.isIntersecting) return; ioC.unobserve(x.target);
+      const el = x.target, alvo = parseInt(el.dataset.conta)||0, suf = el.dataset.sufixo||'';
+      const t0 = performance.now(), dur = 1300;
+      const tick = t => { const k = Math.min(1,(t-t0)/dur); el.textContent = Math.round(alvo*(1-Math.pow(1-k,3))) + suf; if(k<1) requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    }), {threshold:.5});
+    document.querySelectorAll('[data-conta]').forEach(el=>ioC.observe(el));
+  } else {
+    document.querySelectorAll('.hm-sec').forEach(s=>s.classList.add('vis'));
+    document.querySelectorAll('[data-conta]').forEach(el=>el.textContent = (el.dataset.conta||'0')+(el.dataset.sufixo||''));
+  }
+  let rafP = null;
+  function aoRolar(){
+    if (rafP) return;
+    rafP = requestAnimationFrame(()=>{
+      rafP = null;
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      const prog = $('hm-prog'); if (prog) prog.style.width = (h>0 ? (window.scrollY/h)*100 : 0) + '%';
+      if (window.innerWidth >= 900 && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+        document.querySelectorAll('[data-par]').forEach(f=>{
+          const r = f.getBoundingClientRect();
+          if (r.bottom < -200 || r.top > window.innerHeight + 200) return;
+          const c = (r.top + r.height/2 - window.innerHeight/2) / window.innerHeight;
+          f.style.transform = `translateY(${(-c * (14 + (+f.dataset.par)*7)).toFixed(1)}px)`;
         });
+      }
+    });
+  }
+  window.addEventListener('scroll', aoRolar, {passive:true});
+  window.addEventListener('resize', aoRolar);
+  aoRolar();
 
-        // --- SCRIPT DO FADE-IN ---
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('active');
-                }
-            });
-        }, { threshold: 0.1 });
+  /* ── busca ── */
+  let buscaSel = -1, buscaLista = [];
+  function abrirBusca(){
+    $('hm-busca-scrim').hidden = false;
+    requestAnimationFrame(()=>$('hm-busca-scrim').classList.add('on'));
+    $('hm-busca').classList.add('on'); document.body.style.overflow='hidden';
+    setTimeout(()=>$('hm-busca-in').focus(), 120);
+    if (!$('hm-busca-in').value) renderBusca('');
+  }
+  function fecharBusca(){
+    $('hm-busca').classList.remove('on'); $('hm-busca-scrim').classList.remove('on');
+    document.body.style.overflow=''; setTimeout(()=>{ $('hm-busca-scrim').hidden = true; }, 320);
+  }
+  function renderBusca(q){
+    const termo = q.trim().toLowerCase();
+    buscaLista = !termo ? produtos.filter(p=>p.destaque).slice(0,8)
+      : produtos.filter(p=>(p.nome+' '+(p.colecao||'')+' '+(p.categoria||'')).toLowerCase().includes(termo)).slice(0,24);
+    if (!buscaLista.length && !termo) buscaLista = produtos.slice(0,8);
+    buscaSel = -1;
+    const alvo = $('hm-busca-res');
+    if (!buscaLista.length){
+      alvo.innerHTML = `<div class="hm-busca-vazio">${termo?`Nada encontrado para “${esc(q)}”.<br>Tente o nome da peça ou da coleção.`:'As peças estão sendo cadastradas no ateliê.'}</div>`;
+      return;
+    }
+    alvo.innerHTML = (termo?'':'<div class="hm-busca-vazio" style="padding:10px 12px;text-align:left;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--tinta3)">Destaques do ateliê</div>') +
+      buscaLista.map((p,i)=>{
+        const f = fotos(p.imagem_url)[0], pr = (p.preco_centavos||0)/100;
+        return `<a class="hm-busca-item" href="${BASE}produto/${slug(p.nome)}" data-bi="${i}">
+          <img src="${f}" alt="" onerror="this.src='${BASE}logo.png'">
+          <div class="t"><b>${esc(p.nome)}</b><span>${esc(p.colecao||p.categoria||'Joia autoral')}</span></div>
+          <span class="p">${brl(pr)}</span></a>`;
+      }).join('');
+  }
+  $('hm-abre-busca').addEventListener('click', abrirBusca);
+  $('hm-abre-busca').addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); abrirBusca(); } });
+  $('hm-busca-x').addEventListener('click', fecharBusca);
+  $('hm-busca-scrim').addEventListener('click', fecharBusca);
+  $('hm-busca-in').addEventListener('input', e=>renderBusca(e.target.value));
+  $('hm-busca-in').addEventListener('keydown', e=>{
+    const itens = Array.from(document.querySelectorAll('.hm-busca-item'));
+    if (e.key==='ArrowDown'||e.key==='ArrowUp'){
+      e.preventDefault(); if(!itens.length) return;
+      buscaSel = (buscaSel + (e.key==='ArrowDown'?1:-1) + itens.length) % itens.length;
+      itens.forEach((el,k)=>el.classList.toggle('sel', k===buscaSel));
+      itens[buscaSel].scrollIntoView({block:'nearest'});
+    }
+    if (e.key==='Enter'){ e.preventDefault(); const el = itens[buscaSel] || itens[0]; if(el) window.location.href = el.getAttribute('href'); }
+  });
+  document.addEventListener('keydown', e=>{
+    const digitando = /input|textarea|select/i.test(document.activeElement?.tagName||'');
+    if (e.key==='/' && !digitando){ e.preventDefault(); abrirBusca(); }
+    if (e.key==='Escape'){ fecharBusca(); fecharExit(); }
+  });
 
-        document.querySelectorAll('.reveal').forEach((el) => {
-            observer.observe(el);
-        });
-    </script>
+  /* ── newsletter + cupom real ── */
+  const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+  const novoCupom = () => 'VIVI10-' + Array.from({length:4},()=> 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');
+  function guardarCupom(cod){
+    cupomAtual = cod;
+    try { localStorage.setItem('cupom_vivi', JSON.stringify({ codigo:cod, pct:10 })); localStorage.setItem('newsletter_ok','1'); } catch(e){}
+  }
+  async function assinar(nome, email){
+    const n = nome.trim(), e = email.trim().toLowerCase();
+    if (n.length < 2) return { erro:'Digite seu nome.' };
+    if (!emailOk(e)) return { erro:'Digite um e-mail válido.' };
+    try{
+      const { data: ja } = await supabase.from('newsletter').select('cupom_utilizado').eq('email', e).limit(1);
+      if (ja && ja.length){
+        const cod = ja[0].cupom_utilizado || novoCupom();
+        if (!ja[0].cupom_utilizado) await supabase.from('newsletter').update({ cupom_utilizado:cod }).eq('email', e);
+        guardarCupom(cod); return { cod, existente:true };
+      }
+      const cod = novoCupom();
+      const { error } = await supabase.from('newsletter').insert([{ nome:n, email:e, cupom_utilizado:cod }]);
+      if (error){
+        const { data: again } = await supabase.from('newsletter').select('cupom_utilizado').eq('email', e).limit(1);
+        const c2 = again?.[0]?.cupom_utilizado || cod;
+        guardarCupom(c2); return { cod:c2, existente:true };
+      }
+      guardarCupom(cod); return { cod };
+    }catch(err){ return { erro:'Não foi possível conectar agora. Tente novamente em instantes.' }; }
+  }
+  async function copiar(txt, botao){
+    try { await navigator.clipboard.writeText(txt); }
+    catch(e){ const ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(_){} ta.remove(); }
+    const velho = botao.textContent; botao.textContent = 'Copiado ✓';
+    setTimeout(()=>botao.textContent = velho, 1900);
+  }
+  $('hm-news-form').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const btn = $('hm-news-btn'), msg = $('hm-news-msg');
+    const nome = $('hm-news-nome'), mail = $('hm-news-email');
+    nome.classList.remove('ruim'); mail.classList.remove('ruim');
+    if (nome.value.trim().length<2){ nome.classList.add('ruim'); nome.focus(); }
+    if (!emailOk(mail.value)){ mail.classList.add('ruim'); if(!nome.classList.contains('ruim')) mail.focus(); }
+    if (nome.classList.contains('ruim')||mail.classList.contains('ruim')){ msg.className='hm-news-msg err'; msg.textContent='Confira seu nome e e-mail.'; return; }
+    btn.disabled = true; btn.textContent = 'Gerando seu cupom…'; msg.className='hm-news-msg'; msg.textContent='';
+    const r = await assinar(nome.value, mail.value);
+    btn.disabled = false; btn.textContent = 'Quero meu cupom de 10%';
+    if (r.erro){ msg.className='hm-news-msg err'; msg.textContent = r.erro; return; }
+    $('hm-cupom-cod').textContent = r.cod;
+    $('hm-cupom').classList.add('on');
+    $('hm-news-form').style.display = 'none';
+    toast('Cupom de 10% liberado', r.cod);
+  });
+  $('hm-cupom-copy').addEventListener('click', e=>copiar(cupomAtual || $('hm-cupom-cod').textContent, e.currentTarget));
+  $('hm-cupom-aplicar').addEventListener('click', ()=>{ guardarCupom(cupomAtual || $('hm-cupom-cod').textContent); window.location.href = `${BASE}carrinho`; });
+
+  /* ── exit intent ── */
+  let exitPronto = false, exitAberto = false;
+  const jaAssinou = () => { try { return localStorage.getItem('newsletter_ok')==='1'; } catch(e){ return false; } };
+  const vistoSessao = () => { try { return sessionStorage.getItem('exit_visto')==='1'; } catch(e){ return false; } };
+  function abrirExit(){
+    if (exitAberto || jaAssinou() || vistoSessao() || !exitPronto) return;
+    if ($('hm-busca').classList.contains('on')) return;
+    exitAberto = true;
+    try { sessionStorage.setItem('exit_visto','1'); } catch(e){}
+    $('hm-exit-scrim').hidden = false;
+    requestAnimationFrame(()=>$('hm-exit-scrim').classList.add('on'));
+    $('hm-exit').classList.add('on'); document.body.style.overflow='hidden';
+    setTimeout(()=>$('hm-exit-email').focus(), 260);
+  }
+  function fecharExit(){
+    if (!exitAberto) return;
+    exitAberto = false;
+    $('hm-exit').classList.remove('on'); $('hm-exit-scrim').classList.remove('on');
+    document.body.style.overflow=''; setTimeout(()=>{ $('hm-exit-scrim').hidden = true; }, 340);
+  }
+  setTimeout(()=>{ exitPronto = true; }, 9000);
+  document.addEventListener('mouseout', e=>{ if (!e.relatedTarget && e.clientY <= 4) abrirExit(); });
+  let ultimoY = window.scrollY, subiuRapido = 0;
+  window.addEventListener('scroll', ()=>{
+    const y = window.scrollY;
+    if (y < ultimoY - 90 && y < 420){ subiuRapido++; if (subiuRapido >= 2) abrirExit(); }
+    ultimoY = y;
+  }, {passive:true});
+  $('hm-exit-x').addEventListener('click', fecharExit);
+  $('hm-exit-nao').addEventListener('click', fecharExit);
+  $('hm-exit-scrim').addEventListener('click', fecharExit);
+  $('hm-exit-form').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const btn = $('hm-exit-btn'), msg = $('hm-exit-msg');
+    const nome = $('hm-exit-nome'), mail = $('hm-exit-email');
+    nome.classList.remove('ruim'); mail.classList.remove('ruim');
+    if (nome.value.trim().length<2) nome.classList.add('ruim');
+    if (!emailOk(mail.value)) mail.classList.add('ruim');
+    if (nome.classList.contains('ruim')||mail.classList.contains('ruim')){ msg.className='hm-exit-msg err'; msg.textContent='Confira seu nome e e-mail.'; return; }
+    btn.disabled = true; btn.textContent = 'Liberando…'; msg.className='hm-exit-msg'; msg.textContent='';
+    const r = await assinar(nome.value, mail.value);
+    btn.disabled = false; btn.textContent = 'Liberar meu cupom';
+    if (r.erro){ msg.className='hm-exit-msg err'; msg.textContent = r.erro; return; }
+    $('hm-exit-cod').textContent = r.cod;
+    $('hm-exit-form-wrap').style.display = 'none';
+    $('hm-exit-cupom').classList.add('on');
+    $('hm-cupom-cod').textContent = r.cod; $('hm-cupom').classList.add('on'); $('hm-news-form').style.display='none';
+    toast('Cupom de 10% liberado', r.cod);
+  });
+  $('hm-exit-copy').addEventListener('click', e=>copiar(cupomAtual || $('hm-exit-cod').textContent, e.currentTarget));
+  $('hm-exit-aplicar').addEventListener('click', ()=>{ guardarCupom(cupomAtual || $('hm-exit-cod').textContent); window.location.href = `${BASE}carrinho`; });
+
+  /* ── revalidação silenciosa dos dados ── */
+  function cardHTML(p){
+    const fs = fotos(p.imagem_url), pr = (p.preco_centavos||0)/100;
+    const est = (p.estoque===null||p.estoque===undefined) ? null : parseInt(p.estoque);
+    const sem = est === 0;
+    const selo = est===1 ? '<span class="hm-card-selo">Única</span>' : sem ? '<span class="hm-card-selo off">Esgotada</span>' : p.destaque ? '<span class="hm-card-selo ouro">Destaque</span>' : '';
+    return `<a class="hm-card" href="${BASE}produto/${slug(p.nome)}">
+      <div class="hm-card-f">${selo}
+        <img class="pri" src="${fs[0]}" alt="${esc(p.nome)}" loading="lazy" onerror="this.src='${BASE}logo.png'">
+        ${fs[1]?`<img class="alt" src="${fs[1]}" alt="" aria-hidden="true" loading="lazy">`:''}
+        <button type="button" class="hm-add" data-add="${esc(p.id)}" data-nome="${esc(p.nome)}" data-preco="${pr}" data-img="${esc(fs[0])}" ${sem?'disabled':''} aria-label="Adicionar ${esc(p.nome)} à sacola">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+      <div class="hm-card-c">
+        ${p.colecao?`<span class="hm-card-col">${esc(p.colecao)}</span>`:''}
+        <h3 class="hm-card-n">${esc(p.nome)}</h3>
+        ${p.numeracao?`<span class="hm-card-nf">Nº ${esc(p.numeracao)}</span>`:''}
+        <span class="hm-card-p">${brl(pr)}</span>
+      </div></a>`;
+  }
+  async function revalidar(){
+    try{
+      const { data, error } = await supabase.from('produtos').select('id,nome,preco_centavos,imagem_url,categoria,colecao,destaque,estoque,numeracao').order('nome');
+      if (error || !Array.isArray(data) || !data.length) return;
+      const novos = data.filter(p=>p&&p.nome);
+      if (JSON.stringify(novos) === JSON.stringify(produtos)) return;
+      produtos = novos;
+      const grupos = {
+        destaques: novos.filter(p=>p.destaque),
+        aneis: novos.filter(p=>String(p.categoria||'').toLowerCase().startsWith('an')),
+        brincos: novos.filter(p=>String(p.categoria||'').toLowerCase().startsWith('brin')),
+        colares: novos.filter(p=>String(p.categoria||'').toLowerCase().startsWith('col'))
+      };
+      Object.entries(grupos).forEach(([id, lista])=>{
+        const r = $('rail-'+id); if(!r || !lista.length) return;
+        r.innerHTML = lista.map(cardHTML).join('');
+        estadoSetas(id);
+      });
+      if ($('hm-busca').classList.contains('on')) renderBusca($('hm-busca-in').value);
+    }catch(e){}
+  }
+  setTimeout(revalidar, 1400);
+  window.addEventListener('focus', ()=>setTimeout(revalidar, 400));
+</script>
 </body>
 </html>
