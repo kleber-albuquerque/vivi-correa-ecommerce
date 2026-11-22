@@ -103,37 +103,6 @@ const { data: produtos } = await supabase.from('produtos').select('*').order('no
         </div>
     </main>
 
-    <script>
-      const burger = document.getElementById("admin-burger");
-      const aside = document.querySelector("aside");
-      const scrim = document.getElementById("admin-scrim");
-      
-      function toggleMenu() {
-        aside.classList.toggle("aberto");
-        scrim.classList.toggle("visivel");
-      }
-      
-      burger?.addEventListener("click", toggleMenu);
-      scrim?.addEventListener("click", toggleMenu);
-      
-      // Fecha menu ao clicar em um link
-      aside?.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", () => {
-          if (window.innerWidth < 900) {
-            aside.classList.remove("aberto");
-            scrim.classList.remove("visivel");
-          }
-        });
-      });
-    </script>
-    <script>
-      const burger = document.getElementById("admin-burger");
-      const aside = document.querySelector("aside");
-      const scrim = document.getElementById("admin-scrim");
-      function toggleMenu() { aside.classList.toggle("aberto"); scrim.classList.toggle("visivel"); }
-      burger?.addEventListener("click", toggleMenu);
-      scrim?.addEventListener("click", toggleMenu);
-      aside?.querySelectorAll("a").forEach(link => { link.addEventListener("click", () => { if (window.innerWidth < 900) { aside.classList.remove("aberto"); scrim.classList.remove("visivel"); } }); });
-    </script>
+    <script src="../../scripts/admin-menu.js"></script>
 </body>
 </html>
