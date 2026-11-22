@@ -27,8 +27,6 @@ const { data: pedidos } = await supabase.from('pedidos').select('*').order('cria
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-gray-800">
-    <button class="admin-burger" id="admin-burger" aria-label="Abrir menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
-    <div class="admin-scrim" id="admin-scrim"></div>
     <button class="admin-burger" id="admin-burger" aria-label="Abrir menu">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -121,6 +119,6 @@ const { data: pedidos } = await supabase.from('pedidos').select('*').order('cria
             ))}
         </div>
     </main>
-    <script src="../../scripts/admin-menu.js"></script>
+        <script src="../../scripts/admin-menu.js"></script>
 </body>
 </html>
