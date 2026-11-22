@@ -1,4 +1,4 @@
-/* ═══ PAINEL ADMIN — RESPONSIVO ═══ */
+/* ═══ PAINEL ADMIN — RESPONSIVO BLINDADO ═══ */
 
 /* ── Desktop: mantém sidebar fixa ── */
 @media (min-width: 900px) {
@@ -7,20 +7,19 @@
   .admin-burger, .admin-scrim { display: none !important; }
 }
 
-/* ── Mobile: sidebar vira gaveta ── */
+/* ── Mobile: ajustes agressivos para não quebrar ── */
 @media (max-width: 899px) {
   body {
     flex-direction: column !important;
     height: auto !important;
-    overflow: auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
   }
   body.menu-aberto { overflow: hidden !important; }
 
   aside {
     position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    bottom: 0 !important;
+    top: 0 !important; left: 0 !important; bottom: 0 !important;
     width: 280px !important;
     max-width: 85vw !important;
     z-index: 1000 !important;
@@ -29,25 +28,26 @@
     box-shadow: 4px 0 24px rgba(0,0,0,0.3) !important;
     pointer-events: none !important;
   }
-
   aside.aberto {
     transform: translateX(0) !important;
     pointer-events: auto !important;
   }
 
+  /* Main: reduz padding para ganhar espaço */
   main {
     padding: 16px !important;
-    margin-top: 60px !important;
+    padding-top: 70px !important; /* Espaço para o botão hambúrguer fixo */
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
+  /* Botão Hambúrguer */
   .admin-burger {
     display: flex !important;
     position: fixed !important;
-    top: 12px !important;
-    left: 12px !important;
+    top: 12px !important; left: 12px !important;
     z-index: 1100 !important;
-    width: 46px !important;
-    height: 46px !important;
+    width: 46px !important; height: 46px !important;
     background: #1f2937 !important;
     color: white !important;
     border: none !important;
@@ -61,42 +61,69 @@
   }
   .admin-burger:active { transform: scale(0.95); }
 
+  /* Scrim (fundo escuro) */
   .admin-scrim {
-    position: fixed !important;
-    inset: 0 !important;
+    position: fixed !important; inset: 0 !important;
     background: rgba(0,0,0,0.55) !important;
     z-index: 999 !important;
     opacity: 0 !important;
     pointer-events: none !important;
     transition: opacity 0.3s ease !important;
-    touch-action: manipulation !important;
+  }
+  .admin-scrim.visivel { opacity: 1 !important; pointer-events: auto !important; }
+
+  /* ── CORREÇÕES ESPECÍFICAS DO FORMULÁRIO DE EDIÇÃO ── */
+  
+  /* Forçar grids de 2 colunas a virarem 1 coluna */
+  .grid-cols-2, .md\:grid-cols-2, .lg\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
   }
 
-  .admin-scrim.visivel {
-    opacity: 1 !important;
-    pointer-events: auto !important;
-  }
-
-  /* Tabelas: rolagem horizontal */
-  table { min-width: 0 !important; font-size: 13px !important; }
-  .overflow-x-auto { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
-
-  /* Grids: empilham em 1 coluna */
-  .grid-cols-2 { grid-template-columns: 1fr !important; gap: 12px !important; }
-
-  /* Botões e alvos maiores para toque */
-  button, .btn, a[href], input[type="submit"] {
-    min-height: 44px !important;
-    touch-action: manipulation !important;
-  }
-
-  /* Imagens responsivas */
-  img { max-width: 100% !important; height: auto !important; }
-
-  /* Inputs maiores para toque */
+  /* Inputs, selects e textareas ocupando 100% e com fonte 16px (evita zoom no iOS) */
   input, select, textarea {
+    width: 100% !important;
     font-size: 16px !important;
     padding: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Galeria de imagens: no máximo 2 colunas no celular */
+  .galeria-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Área de upload e imagens não estouram a tela */
+  img, .upload-area, .galeria-item {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Botões de ação (Salvar / Excluir) empilhados e grandes */
+  .flex.justify-end.gap-4, .flex.justify-between {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .flex.justify-end.gap-4 button, 
+  .flex.justify-end.gap-4 a,
+  .flex.justify-between button {
+    width: 100% !important;
+    text-align: center !important;
+    min-height: 48px !important;
+  }
+
+  /* Tabelas (lista de produtos/pedidos) com rolagem horizontal */
+  table {
+    min-width: 0 !important;
+    font-size: 13px !important;
+    display: block !important;
+    width: 100% !important;
+  }
+  .overflow-x-auto {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   /* Títulos menores */
