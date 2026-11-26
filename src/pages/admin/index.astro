@@ -1,7 +1,5 @@
 ---
 import '../../styles/global.css';
-import '../../styles/admin.css';
-import '../../styles/admin.css';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -10,13 +8,32 @@ const supabase = createClient(
 );
 
 const { data: produtos } = await supabase.from('produtos').select('*').order('nome', { ascending: true });
+const { data: pedidos } = await supabase.from('pedidos').select('id');
+
+// Cálculos para o Dashboard
+const totalProdutos = produtos?.length || 0;
+const totalPedidos = pedidos?.length || 0;
+
+// Contagem de produtos por categoria
+const categorias = {};
+produtos?.forEach(p => {
+    const cat = p.categoria || 'Sem Categoria';
+    categorias[cat] = (categorias[cat] || 0) + 1;
+});
+
+// Contagem de produtos por coleção
+const colecoes = {};
+produtos?.forEach(p => {
+    if (p.colecao) {
+        colecoes[p.colecao] = (colecoes[p.colecao] || 0) + 1;
+    }
+});
 ---
 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Painel - Vivi Correa</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
     <style is:global>
@@ -27,36 +44,71 @@ const { data: produtos } = await supabase.from('produtos').select('*').order('no
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-gray-800">
-    <button class="admin-burger" id="admin-burger" aria-label="Abrir menu">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
-    </button>
-    <div class="admin-scrim" id="admin-scrim"></div>
 
     <aside class="w-64 bg-gray-900 text-white flex flex-col">
         <div class="p-6 text-center border-b border-gray-800">
-            <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Vivi Correa" class="h-12 mx-auto brightness-0 invert" />
+            <img src="/logo.png" alt="Vivi Correa" class="h-12 mx-auto brightness-0 invert" />
             <p class="text-xs uppercase tracking-widest mt-2 text-gray-400">Admin</p>
         </div>
         <nav class="flex-1 p-4 space-y-2">
-            <a href={`${import.meta.env.BASE_URL}admin`} class="block px-4 py-3 bg-gray-800 rounded text-brand font-semibold">Produtos</a>
-            <a href={`${import.meta.env.BASE_URL}admin/pedidos`} class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Pedidos</a>
-            <a href={`${import.meta.env.BASE_URL}admin/config`} class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Configurações (Banner)</a>
-            <a href={`${import.meta.env.BASE_URL}admin/conteudo`} class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Conteúdo do Site</a>
+            <a href="/admin" class="block px-4 py-3 bg-gray-800 rounded text-brand font-semibold">Produtos</a>
+            <a href="/admin/pedidos" class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Pedidos</a>
+            <a href="/admin/config" class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Configurações (Banner)</a>
+            <a href="/admin/conteudo" class="block px-4 py-3 hover:bg-gray-800 rounded transition text-gray-300">Conteúdo do Site</a>
         </nav>
         <div class="p-4 border-t border-gray-800">
-            <a href={`${import.meta.env.BASE_URL}`} target="_blank" class="block text-center text-sm text-gray-400 hover:text-white transition">Ver Loja Online ↗</a>
+            <a href="/" target="_blank" class="block text-center text-sm text-gray-400 hover:text-white transition">Ver Loja Online ↗</a>
         </div>
     </aside>
 
     <main class="flex-1 overflow-y-auto p-8">
-        <div class="flex justify-between items-center mb-8">
+
+        <!-- Dashboard de Estatísticas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-brand">
+                <p class="text-gray-500 text-sm font-semibold uppercase tracking-wider">Total de Produtos</p>
+                <p class="text-4xl font-bold text-gray-900">{totalProdutos}</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
+                <p class="text-gray-500 text-sm font-semibold uppercase tracking-wider">Pedidos Recebidos</p>
+                <p class="text-4xl font-bold text-gray-900">{totalPedidos}</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow border-l-4 border-green-500">
+                <p class="text-gray-500 text-sm font-semibold uppercase tracking-wider">Coleções Ativas</p>
+                <p class="text-4xl font-bold text-gray-900">{Object.keys(colecoes).length}</p>
+            </div>
+        </div>
+
+        <!-- Resumo por Categoria e Coleção -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl mb-4 border-b pb-2">Produtos por Categoria</h3>
+                <ul class="space-y-2">
+                    {Object.entries(categorias).map(([cat, count]) => (
+                        <li class="flex justify-between text-sm">
+                            <span class="text-gray-600">{cat}</span>
+                            <span class="font-bold">{count}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-xl mb-4 border-b pb-2">Produtos por Coleção</h3>
+                <ul class="space-y-2 max-h-48 overflow-y-auto pr-2">
+                    {Object.entries(colecoes).map(([col, count]) => (
+                        <li class="flex justify-between text-sm">
+                            <span class="text-gray-600">{col}</span>
+                            <span class="font-bold">{count}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Lista de Produtos -->
+        <div class="flex justify-between items-center mb-4">
             <h2 class="text-3xl">Gerenciar Produtos</h2>
-            <!-- MUDANÇA: Agora aponta para /editar -->
-            <a href={`${import.meta.env.BASE_URL}editar`} class="bg-brand text-white px-6 py-2 rounded shadow hover:bg-[#7a654b] transition font-semibold">+ Adicionar Peça</a>
+            <a href="/editar" class="bg-brand text-white px-6 py-2 rounded shadow hover:bg-[#7a654b] transition font-semibold">+ Adicionar Peça</a>
         </div>
 
         <div class="bg-white rounded-lg shadow overflow-x-auto">
@@ -67,40 +119,49 @@ const { data: produtos } = await supabase.from('produtos').select('*').order('no
                         <th class="p-4 font-medium">Nome da Peça</th>
                         <th class="p-4 font-medium">Categoria</th>
                         <th class="p-4 font-medium">Preço</th>
+                        <th class="p-4 font-medium">Galeria</th>
                         <th class="p-4 font-medium">Destaque</th>
                         <th class="p-4 font-medium text-right">Ações</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    {produtos?.map(produto => (
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="p-4">
-                                <div class="w-16 h-16 bg-gray-200 rounded overflow-hidden border">
-                                    {produto.imagem_url ? <img src={produto.imagem_url} class="w-full h-full object-cover" /> : <span class="text-xs flex items-center justify-center h-full text-gray-400">Sem foto</span>}
-                                </div>
-                            </td>
-                            <td class="p-4 font-semibold text-gray-900">{produto.nome}</td>
-                            <td class="p-4 text-sm text-gray-600">{produto.categoria}</td>
-                            <td class="p-4 text-sm font-medium">
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}
-                            </td>
-                            <td class="p-4">
-                                {produto.destaque ? 
-                                    <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-bold">Sim</span> : 
-                                    <span class="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded">Não</span>
-                                }
-                            </td>
-                            <td class="p-4 text-right">
-                                <!-- MUDANÇA: Agora aponta para /editar?id=... -->
-                                <a href={`${import.meta.env.BASE_URL}editar?id=${produto.id}`} class="text-brand hover:text-[#7a654b] text-sm font-bold border border-brand px-3 py-1 rounded transition">Editar</a>
-                            </td>
-                        </tr>
-                    ))}
+                    {produtos?.map(produto => {
+                        // Verifica quantas imagens extras o produto tem
+                        const numGaleria = Array.isArray(produto.galeria_urls) ? produto.galeria_urls.length : 0;
+
+                        return (
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="p-4">
+                                    <div class="w-16 h-16 bg-gray-200 rounded overflow-hidden border">
+                                        {produto.imagem_url ? <img src={produto.imagem_url} class="w-full h-full object-cover" /> : <span class="text-xs flex items-center justify-center h-full text-gray-400">Sem foto</span>}
+                                    </div>
+                                </td>
+                                <td class="p-4 font-semibold text-gray-900">{produto.nome}</td>
+                                <td class="p-4 text-sm text-gray-600">{produto.categoria}</td>
+                                <td class="p-4 text-sm font-medium">
+                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(produto.preco_centavos / 100)}
+                                </td>
+                                <td class="p-4">
+                                    {numGaleria > 0 ?
+                                        <span class="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded font-bold flex items-center gap-1 w-max">📸 {numGaleria} fotos</span> :
+                                        <span class="text-gray-400 text-xs">Apenas principal</span>
+                                    }
+                                </td>
+                                <td class="p-4">
+                                    {produto.destaque ?
+                                        <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded font-bold">Sim</span> :
+                                        <span class="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded">Não</span>
+                                    }
+                                </td>
+                                <td class="p-4 text-right">
+                                    <a href={`/editar?id=${produto.id}`} class="text-brand hover:text-[#7a654b] text-sm font-bold border border-brand px-3 py-1 rounded transition">Editar</a>
+                                </td>
+                            </tr>
+                        )
+                    })}
                 </tbody>
             </table>
         </div>
     </main>
-
-        <script src="../../scripts/admin-menu.js"></script>
 </body>
 </html>
